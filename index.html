@@ -177,7 +177,6 @@
             font-weight: 500;
             transition: all 0.3s ease;
             outline: none;
-            padding-right: 40px; /* Space for dropdown arrow */
         }
         
         .form-input:focus, .form-select:focus {
@@ -187,7 +186,7 @@
         }
         
         .form-input::placeholder {
-            color: #e2e8f0;
+            color: #94a3b8;
         }
         
         /* Action Buttons */
@@ -249,6 +248,11 @@
         .btn-warning {
             background: linear-gradient(135deg, #d97706, #b45309);
             color: white;
+        }
+        
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 0.8rem;
         }
         
         /* Stats Table */
@@ -349,7 +353,6 @@
             font-weight: 700;
         }
         
-        /* Minutes Column Highlight */
         .minutes-col {
             background: rgba(251, 191, 36, 0.1);
             border-left: 2px solid #fbbf24;
@@ -358,6 +361,23 @@
         .minutes-input {
             background: rgba(251, 191, 36, 0.1);
             border-radius: 4px;
+        }
+        
+        .post-game-section {
+            background: rgba(251, 191, 36, 0.1);
+            border: 1px solid rgba(251, 191, 36, 0.3);
+            border-radius: 12px;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+        
+        .post-game-title {
+            color: #fbbf24;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
         
         /* Game Cards */
@@ -400,9 +420,22 @@
             gap: 0.5rem;
         }
         
-        .btn-small {
-            padding: 6px 12px;
+        .win-loss-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-weight: 700;
             font-size: 0.8rem;
+            margin-left: 1rem;
+        }
+        
+        .win-badge {
+            background: linear-gradient(135deg, #059669, #047857);
+            color: white;
+        }
+        
+        .loss-badge {
+            background: linear-gradient(135deg, #dc2626, #b91c1c);
+            color: white;
         }
         
         /* Footer */
@@ -413,13 +446,13 @@
             border-top: 1px solid rgba(59, 130, 246, 0.1);
         }
         
-        .footer-text {
-            font-weight: 700;
-            font-size: 1.1rem;
-            background: linear-gradient(135deg, #3b82f6, #60a5fa);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+        /* Hidden by default */
+        .view {
+            display: none;
+        }
+        
+        .view.active {
+            display: block;
         }
         
         /* Responsive */
@@ -445,33 +478,6 @@
             .form-grid {
                 grid-template-columns: 1fr;
             }
-        }
-        
-        /* Hidden by default */
-        .view {
-            display: none;
-        }
-        
-        .view.active {
-            display: block;
-        }
-        
-        /* Post-game minutes section */
-        .post-game-section {
-            background: rgba(251, 191, 36, 0.1);
-            border: 1px solid rgba(251, 191, 36, 0.3);
-            border-radius: 12px;
-            padding: 1rem;
-            margin: 1rem 0;
-        }
-        
-        .post-game-title {
-            color: #fbbf24;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
         }
     </style>
 </head>
@@ -561,6 +567,23 @@
                 </div>
             </div>
 
+            <!-- Final Score Section -->
+            <div class="post-game-section" id="final-score-section">
+                <div class="post-game-title">
+                    🏀 Final Score (Add After Game)
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; max-width: 400px; margin: 0 auto;">
+                    <div class="form-group">
+                        <label class="form-label">Blue Eagles Score</label>
+                        <input type="number" id="teamScore" placeholder="Our score" class="form-input" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Opponent Score</label>
+                        <input type="number" id="opponentScore" placeholder="Their score" class="form-input" min="0">
+                    </div>
+                </div>
+            </div>
+
             <!-- Action Buttons -->
             <div class="action-buttons">
                 <button class="btn btn-primary" onclick="loadRoster()">
@@ -577,19 +600,6 @@
                 </button>
                 <button class="btn btn-warning" onclick="clearForm()">
                     New Game
-                </button>
-            </div>
-
-            <!-- Post-Game Minutes Section -->
-            <div class="post-game-section" style="display: none;" id="post-game-section">
-                <div class="post-game-title">
-                    Post-Game: Add Minutes Played
-                </div>
-                <p style="color: #e2e8f0; font-size: 0.9rem; margin-bottom: 1rem;">
-                    Quickly add minutes for all players after the game. This is optional during live tracking.
-                </p>
-                <button class="btn btn-secondary btn-small" onclick="showMinutesInput()">
-                    Add Minutes for All Players
                 </button>
             </div>
 
@@ -661,7 +671,7 @@
         </div>
     </div>
 
-    <!-- Other views will be added here -->
+    <!-- Player Averages View -->
     <div id="averages-view" class="view">
         <div class="container">
             <div class="hero">
@@ -674,6 +684,7 @@
         </div>
     </div>
 
+    <!-- Tournament Stats View -->
     <div id="tournaments-view" class="view">
         <div class="container">
             <div class="hero">
@@ -686,6 +697,7 @@
         </div>
     </div>
 
+    <!-- Yearly Totals View -->
     <div id="yearly-view" class="view">
         <div class="container">
             <div class="hero">
@@ -698,6 +710,7 @@
         </div>
     </div>
 
+    <!-- Saved Games View -->
     <div id="games-view" class="view">
         <div class="container">
             <div class="hero">
@@ -734,6 +747,7 @@
         </div>
     </div>
 
+    <!-- Manage View -->
     <div id="manage-view" class="view">
         <div class="container">
             <div class="hero">
@@ -741,7 +755,6 @@
                 <p>Tournaments & Roster Management</p>
             </div>
             
-            <!-- Roster Management -->
             <div class="card">
                 <h3 style="color: #3b82f6; margin-bottom: 1rem; font-weight: 700;">Team Roster</h3>
                 <div class="action-buttons" style="margin: 1rem 0;">
@@ -757,7 +770,6 @@
                 </div>
             </div>
             
-            <!-- Tournament Management -->
             <div class="card">
                 <h3 style="color: #3b82f6; margin-bottom: 1rem; font-weight: 700;">Tournament Management</h3>
                 <div class="form-grid" style="grid-template-columns: 1fr auto; max-width: 600px;">
@@ -798,588 +810,327 @@
             {id: 14, firstName: "Candice", lastName: "Udal", number: "34", position: "", isStarter: false},
             {id: 15, firstName: "Camille", lastName: "Malagar", number: "45", position: "", isStarter: false}
         ];
-        
-        // Load roster from localStorage or use default
-        const savedRoster = localStorage.getItem('ateneoRoster');
-        if (savedRoster) {
-            currentRoster = JSON.parse(savedRoster);
-        } else {
-            localStorage.setItem('ateneoRoster', JSON.stringify(currentRoster));
-        }
-        
-        let players = [];
-        let savedGames = JSON.parse(localStorage.getItem('ateneoGames') || '[]');
-        let tournaments = JSON.parse(localStorage.getItem('ateneoTournaments') || '["Union Sports League", "RP Basketball League"]');
 
-        // Helper function to get display name (handles duplicate last names)
-        function getDisplayName(player, showFullName = false) {
-            if (showFullName) {
-                return `${player.firstName} ${player.lastName}`;
-            }
-            
-            // Check if there's another player with the same last name
-            const sameLast = currentRoster.filter(p => p.lastName === player.lastName);
-            if (sameLast.length > 1) {
-                return `${player.firstName.charAt(0)}. ${player.lastName}`;
-            }
-            return player.lastName;
-        }
+        let savedGames = JSON.parse(localStorage.getItem('basketballGames')) || [];
+        let gameIdCounter = parseInt(localStorage.getItem('gameIdCounter')) || 1;
+        let currentGamePlayers = [];
 
-        // Initialize
-        loadRoster();
-        updateManageView();
-
-        function loadRoster() {
-            players = currentRoster.map(rosterPlayer => ({
-                id: rosterPlayer.id,
-                name: getDisplayName(rosterPlayer),
-                fullName: `${rosterPlayer.firstName} ${rosterPlayer.lastName}`,
-                number: rosterPlayer.number,
-                position: rosterPlayer.position,
-                isStarter: rosterPlayer.isStarter,
-                isDNP: false,
-                stats: {
-                    fg2Att: 0, fg2Made: 0, fg3Att: 0, fg3Made: 0, ftAtt: 0, ftMade: 0,
-                    offReb: 0, defReb: 0, assists: 0, steals: 0, blocks: 0, turnovers: 0,
-                    fouls: 0, totalPoints: 0, fastbreakPoints: 0, minutesPlayed: 0
-                }
-            }));
-            
-            // Sort by starters first, then by jersey number
-            players.sort((a, b) => {
-                if (a.isStarter && !b.isStarter) return -1;
-                if (!a.isStarter && b.isStarter) return 1;
-                return parseInt(a.number) - parseInt(b.number);
+        // Navigation functions
+        function showView(viewName) {
+            // Hide all views
+            document.querySelectorAll('.view').forEach(view => {
+                view.classList.remove('active');
             });
             
-            updatePlayersTable();
-            document.getElementById('post-game-section').style.display = 'block';
-        }
-
-        function toggleStarter(playerId) {
-            const player = players.find(p => p.id === playerId);
-            const rosterPlayer = currentRoster.find(p => p.id === playerId);
+            // Remove active class from all nav buttons
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
             
-            if (player && rosterPlayer) {
-                // Count current starters
-                const starterCount = currentRoster.filter(p => p.isStarter).length;
-                
-                if (!rosterPlayer.isStarter && starterCount >= 5) {
-                    alert('You can only have 5 starters. Please remove a starter first.');
-                    return;
-                }
-                
-                rosterPlayer.isStarter = !rosterPlayer.isStarter;
-                player.isStarter = rosterPlayer.isStarter;
-                
-                localStorage.setItem('ateneoRoster', JSON.stringify(currentRoster));
-                loadRoster(); // Reload to re-sort
+            // Show selected view
+            document.getElementById(viewName + '-view').classList.add('active');
+            document.getElementById('btn-' + viewName).classList.add('active');
+            
+            // Update content for specific views
+            if (viewName === 'games') {
+                updateGamesView();
+            } else if (viewName === 'averages') {
+                updateAveragesView();
+            } else if (viewName === 'tournaments') {
+                updateTournamentsView();
+            } else if (viewName === 'yearly') {
+                updateYearlyView();
+            } else if (viewName === 'manage') {
+                updateManageView();
             }
         }
 
-        function toggleDNP(playerId) {
-            const player = players.find(p => p.id === playerId);
-            if (player) {
-                player.isDNP = !player.isDNP;
-                if (player.isDNP) {
-                    // Clear all stats when marked as DNP
-                    Object.keys(player.stats).forEach(stat => {
-                        player.stats[stat] = 0;
-                    });
-                }
-                updatePlayersTable();
-            }
-        }
-
-        function updatePlayersTable() {
+        // Load roster into the game
+        function loadRoster() {
+            currentGamePlayers = [];
             const tbody = document.getElementById('playersTableBody');
             tbody.innerHTML = '';
-
-            players.forEach((player, index) => {
-                const row = document.createElement('tr');
-                row.className = `player-row ${player.isDNP ? 'dnp' : ''} ${index % 2 === 0 ? 'bg-blue-50' : 'bg-white'}`;
-                
-                const starterBadge = player.isStarter ? 
-                    '<span style="background: #059669; color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; margin-left: 4px;">START</span>' : '';
-                
-                row.innerHTML = `
-                    <td class="border border-blue-300 p-1">
-                        <div style="display: flex; align-items: center; justify-content: space-between;">
-                            <span>${player.name}${starterBadge}</span>
-                            <button onclick="toggleStarter(${player.id})" class="btn-small" 
-                                    style="background: ${player.isStarter ? '#059669' : '#6b7280'}; color: white; padding: 2px 6px; border: none; border-radius: 4px; font-size: 0.7rem; cursor: pointer;">
-                                ${player.isStarter ? 'STARTER' : 'BENCH'}
-                            </button>
-                        </div>
-                    </td>
-                    <td class="border border-blue-300 p-1 text-center">${player.number}</td>
-                    <td class="border border-blue-300 p-1">
-                        <select onchange="updatePlayerPosition(${player.id}, this.value)" class="table-select">
-                            <option value="">Pos</option>
-                            <option value="PG" ${player.position === 'PG' ? 'selected' : ''}>PG</option>
-                            <option value="SG" ${player.position === 'SG' ? 'selected' : ''}>SG</option>
-                            <option value="SF" ${player.position === 'SF' ? 'selected' : ''}>SF</option>
-                            <option value="PF" ${player.position === 'PF' ? 'selected' : ''}>PF</option>
-                            <option value="C" ${player.position === 'C' ? 'selected' : ''}>C</option>
-                        </select>
-                    </td>
-                    <td class="border border-blue-300 p-1 text-center">
-                        <button onclick="toggleDNP(${player.id})" class="dnp-toggle ${player.isDNP ? 'dnp' : 'playing'}">
-                            ${player.isDNP ? 'DNP' : 'PLAYING'}
-                        </button>
-                    </td>
-                    ${Object.keys(player.stats).map(stat => `
-                        <td class="border border-blue-300 p-1 ${stat === 'minutesPlayed' ? 'minutes-col' : ''}">
-                            <input type="number" value="${player.stats[stat]}" min="0" 
-                                   onchange="updatePlayerStat(${player.id}, '${stat}', this.value)"
-                                   class="table-input ${stat === 'minutesPlayed' ? 'minutes-input' : ''}" 
-                                   ${player.isDNP ? 'disabled' : ''}>
-                        </td>
-                    `).join('')}
-                    <td class="border border-blue-300 p-1 text-center">
-                        <button onclick="removePlayerFromGame(${player.id})" class="text-red-500 hover:text-red-700" style="background: none; border: none; font-size: 1rem; cursor: pointer;">
-                            ✖
-                        </button>
-                    </td>
-                `;
-                tbody.appendChild(row);
+            
+            currentRoster.forEach(player => {
+                const gamePlayer = {
+                    ...player,
+                    fg2Att: 0, fg2Made: 0,
+                    fg3Att: 0, fg3Made: 0,
+                    ftAtt: 0, ftMade: 0,
+                    offReb: 0, defReb: 0,
+                    assists: 0, steals: 0, blocks: 0,
+                    turnovers: 0, fouls: 0,
+                    fastbreakPoints: 0, minutesPlayed: 0,
+                    status: 'playing'
+                };
+                currentGamePlayers.push(gamePlayer);
+                addPlayerRow(gamePlayer);
             });
-            updateTotals();
+            
+            updateTeamTotals();
         }
 
-        function updatePlayerPosition(playerId, position) {
-            const player = players.find(p => p.id === playerId);
-            const rosterPlayer = currentRoster.find(p => p.id === playerId);
-            if (player && rosterPlayer) {
-                player.position = position;
-                rosterPlayer.position = position;
-                localStorage.setItem('ateneoRoster', JSON.stringify(currentRoster));
-            }
-        }
-
-        function removePlayerFromGame(playerId) {
-            players = players.filter(p => p.id !== playerId);
-            updatePlayersTable();
-        }
-
+        // Add a single player to the game
         function addPlayerToGame() {
-            // Show available players not currently in the game
-            const availablePlayers = currentRoster.filter(rp => 
-                !players.some(p => p.id === rp.id)
-            );
+            const firstName = prompt("Player's first name:");
+            const lastName = prompt("Player's last name:");
+            const number = prompt("Jersey number:");
+            const position = prompt("Position (PG/SG/SF/PF/C):");
             
-            if (availablePlayers.length === 0) {
-                alert('All roster players are already in the game!');
-                return;
+            if (firstName && lastName && number) {
+                const newPlayer = {
+                    id: Date.now(),
+                    firstName: firstName.trim(),
+                    lastName: lastName.trim(),
+                    number: number.trim(),
+                    position: position.trim() || '',
+                    fg2Att: 0, fg2Made: 0,
+                    fg3Att: 0, fg3Made: 0,
+                    ftAtt: 0, ftMade: 0,
+                    offReb: 0, defReb: 0,
+                    assists: 0, steals: 0, blocks: 0,
+                    turnovers: 0, fouls: 0,
+                    fastbreakPoints: 0, minutesPlayed: 0,
+                    status: 'playing'
+                };
+                
+                currentGamePlayers.push(newPlayer);
+                addPlayerRow(newPlayer);
+                updateTeamTotals();
             }
+        }
+
+        // Add player row to the table
+        function addPlayerRow(player) {
+            const tbody = document.getElementById('playersTableBody');
+            const row = document.createElement('tr');
+            row.className = 'player-row';
+            row.id = `player-${player.id}`;
             
-            const playerSelect = availablePlayers.map(p => 
-                `${p.number} - ${getDisplayName(p, true)}`
-            ).join('\n');
+            const totalPoints = (player.fg2Made * 2) + (player.fg3Made * 3) + player.ftMade + player.fastbreakPoints;
             
-            const selection = prompt(`Select player to add:\n${playerSelect}\n\nEnter jersey number:`);
-            if (selection) {
-                const selectedPlayer = availablePlayers.find(p => p.number === selection);
-                if (selectedPlayer) {
-                    const newPlayer = {
-                        id: selectedPlayer.id,
-                        name: getDisplayName(selectedPlayer),
-                        fullName: `${selectedPlayer.firstName} ${selectedPlayer.lastName}`,
-                        number: selectedPlayer.number,
-                        position: selectedPlayer.position,
-                        isStarter: selectedPlayer.isStarter,
-                        isDNP: false,
-                        stats: {
-                            fg2Att: 0, fg2Made: 0, fg3Att: 0, fg3Made: 0, ftAtt: 0, ftMade: 0,
-                            offReb: 0, defReb: 0, assists: 0, steals: 0, blocks: 0, turnovers: 0,
-                            fouls: 0, totalPoints: 0, fastbreakPoints: 0, minutesPlayed: 0
-                        }
-                    };
-                    players.push(newPlayer);
-                    loadRoster(); // Re-sort and update
+            row.innerHTML = `
+                <td>${player.firstName} ${player.lastName}</td>
+                <td>${player.number}</td>
+                <td>
+                    <select class="table-select" onchange="updatePlayerData(${player.id}, 'position', this.value)">
+                        <option value="">-</option>
+                        <option value="PG" ${player.position === 'PG' ? 'selected' : ''}>PG</option>
+                        <option value="SG" ${player.position === 'SG' ? 'selected' : ''}>SG</option>
+                        <option value="SF" ${player.position === 'SF' ? 'selected' : ''}>SF</option>
+                        <option value="PF" ${player.position === 'PF' ? 'selected' : ''}>PF</option>
+                        <option value="C" ${player.position === 'C' ? 'selected' : ''}>C</option>
+                    </select>
+                </td>
+                <td>
+                    <button class="dnp-toggle ${player.status}" onclick="toggleDNP(${player.id})">
+                        ${player.status === 'playing' ? 'PLAYING' : 'DNP'}
+                    </button>
+                </td>
+                <td><input type="number" class="table-input" value="${player.fg2Att}" min="0" onchange="updatePlayerData(${player.id}, 'fg2Att', this.value)"></td>
+                <td><input type="number" class="table-input" value="${player.fg2Made}" min="0" onchange="updatePlayerData(${player.id}, 'fg2Made', this.value)"></td>
+                <td><input type="number" class="table-input" value="${player.fg3Att}" min="0" onchange="updatePlayerData(${player.id}, 'fg3Att', this.value)"></td>
+                <td><input type="number" class="table-input" value="${player.fg3Made}" min="0" onchange="updatePlayerData(${player.id}, 'fg3Made', this.value)"></td>
+                <td><input type="number" class="table-input" value="${player.ftAtt}" min="0" onchange="updatePlayerData(${player.id}, 'ftAtt', this.value)"></td>
+                <td><input type="number" class="table-input" value="${player.ftMade}" min="0" onchange="updatePlayerData(${player.id}, 'ftMade', this.value)"></td>
+                <td><input type="number" class="table-input" value="${player.offReb}" min="0" onchange="updatePlayerData(${player.id}, 'offReb', this.value)"></td>
+                <td><input type="number" class="table-input" value="${player.defReb}" min="0" onchange="updatePlayerData(${player.id}, 'defReb', this.value)"></td>
+                <td><input type="number" class="table-input" value="${player.assists}" min="0" onchange="updatePlayerData(${player.id}, 'assists', this.value)"></td>
+                <td><input type="number" class="table-input" value="${player.steals}" min="0" onchange="updatePlayerData(${player.id}, 'steals', this.value)"></td>
+                <td><input type="number" class="table-input" value="${player.blocks}" min="0" onchange="updatePlayerData(${player.id}, 'blocks', this.value)"></td>
+                <td><input type="number" class="table-input" value="${player.turnovers}" min="0" onchange="updatePlayerData(${player.id}, 'turnovers', this.value)"></td>
+                <td><input type="number" class="table-input" value="${player.fouls}" min="0" onchange="updatePlayerData(${player.id}, 'fouls', this.value)"></td>
+                <td><input type="number" class="table-input" value="${player.fastbreakPoints}" min="0" onchange="updatePlayerData(${player.id}, 'fastbreakPoints', this.value)"></td>
+                <td class="minutes-col"><input type="number" class="table-input minutes-input" value="${player.minutesPlayed}" min="0" onchange="updatePlayerData(${player.id}, 'minutesPlayed', this.value)"></td>
+                <td>${totalPoints}</td>
+                <td><button class="btn btn-danger btn-small" onclick="removePlayer(${player.id})">Remove</button></td>
+            `;
+            
+            tbody.appendChild(row);
+        }
+
+        // Update player data
+        function updatePlayerData(playerId, field, value) {
+            const player = currentGamePlayers.find(p => p.id === playerId);
+            if (player) {
+                if (field === 'position') {
+                    player[field] = value;
+                } else {
+                    player[field] = parseInt(value) || 0;
+                    
+                    // Validate made shots don't exceed attempts
+                    if (field === 'fg2Made' && player.fg2Made > player.fg2Att) {
+                        player.fg2Att = player.fg2Made;
+                        document.querySelector(`#player-${playerId} input[onchange*="fg2Att"]`).value = player.fg2Att;
+                    }
+                    if (field === 'fg3Made' && player.fg3Made > player.fg3Att) {
+                        player.fg3Att = player.fg3Made;
+                        document.querySelector(`#player-${playerId} input[onchange*="fg3Att"]`).value = player.fg3Att;
+                    }
+                    if (field === 'ftMade' && player.ftMade > player.ftAtt) {
+                        player.ftAtt = player.ftMade;
+                        document.querySelector(`#player-${playerId} input[onchange*="ftAtt"]`).value = player.ftAtt;
+                    }
+                }
+                
+                updatePlayerTotalPoints(playerId);
+                updateTeamTotals();
+            }
+        }
+
+        // Update player's total points
+        function updatePlayerTotalPoints(playerId) {
+            const player = currentGamePlayers.find(p => p.id === playerId);
+            if (player) {
+                const totalPoints = (player.fg2Made * 2) + (player.fg3Made * 3) + player.ftMade + player.fastbreakPoints;
+                document.querySelector(`#player-${playerId} td:last-child`).previousElementSibling.textContent = totalPoints;
+            }
+        }
+
+        // Toggle DNP status
+        function toggleDNP(playerId) {
+            const player = currentGamePlayers.find(p => p.id === playerId);
+            if (player) {
+                player.status = player.status === 'playing' ? 'dnp' : 'playing';
+                const row = document.getElementById(`player-${playerId}`);
+                const button = row.querySelector('.dnp-toggle');
+                
+                if (player.status === 'dnp') {
+                    row.classList.add('dnp');
+                    button.classList.remove('playing');
+                    button.classList.add('dnp');
+                    button.textContent = 'DNP';
+                } else {
+                    row.classList.remove('dnp');
+                    button.classList.remove('dnp');
+                    button.classList.add('playing');
+                    button.textContent = 'PLAYING';
                 }
             }
         }
 
-        function updatePlayerStat(id, stat, value) {
-            const player = players.find(p => p.id === id);
-            if (player && !player.isDNP) {
-                player.stats[stat] = parseInt(value) || 0;
-                updateTotals();
+        // Remove player from game
+        function removePlayer(playerId) {
+            if (confirm('Remove this player from the game?')) {
+                currentGamePlayers = currentGamePlayers.filter(p => p.id !== playerId);
+                document.getElementById(`player-${playerId}`).remove();
+                updateTeamTotals();
             }
         }
 
-        function updateTotals() {
+        // Update team totals
+        function updateTeamTotals() {
             const totals = {
-                fg2Att: 0, fg2Made: 0, fg3Att: 0, fg3Made: 0, ftAtt: 0, ftMade: 0,
-                offReb: 0, defReb: 0, assists: 0, steals: 0, blocks: 0, turnovers: 0,
-                fouls: 0, totalPoints: 0, fastbreakPoints: 0, minutesPlayed: 0
+                fg2Att: 0, fg2Made: 0, fg3Att: 0, fg3Made: 0,
+                ftAtt: 0, ftMade: 0, offReb: 0, defReb: 0,
+                assists: 0, steals: 0, blocks: 0, turnovers: 0,
+                fouls: 0, fastbreakPoints: 0, minutesPlayed: 0, totalPoints: 0
             };
-
-            players.forEach(player => {
-                if (!player.isDNP) {
-                    Object.keys(totals).forEach(stat => {
-                        totals[stat] += player.stats[stat];
+            
+            currentGamePlayers.forEach(player => {
+                if (player.status === 'playing') {
+                    Object.keys(totals).forEach(key => {
+                        if (key !== 'totalPoints') {
+                            totals[key] += player[key] || 0;
+                        }
                     });
                 }
             });
-
-            Object.keys(totals).forEach(stat => {
-                const element = document.getElementById('total-' + stat);
+            
+            totals.totalPoints = (totals.fg2Made * 2) + (totals.fg3Made * 3) + totals.ftMade + totals.fastbreakPoints;
+            
+            // Update footer row
+            Object.keys(totals).forEach(key => {
+                const element = document.getElementById(`total-${key}`);
                 if (element) {
-                    element.textContent = totals[stat];
+                    element.textContent = totals[key];
                 }
             });
         }
 
-        function showMinutesInput() {
-            const playingPlayers = players.filter(p => !p.isDNP);
-            if (playingPlayers.length === 0) {
-                alert('No players are marked as playing!');
-                return;
-            }
-            
-            let minutesData = {};
-            for (let player of playingPlayers) {
-                const minutes = prompt(`Enter minutes for ${player.name}:`, player.stats.minutesPlayed);
-                if (minutes !== null) {
-                    minutesData[player.id] = parseInt(minutes) || 0;
-                }
-            }
-            
-            // Update the minutes
-            Object.keys(minutesData).forEach(playerId => {
-                const player = players.find(p => p.id == playerId);
-                if (player) {
-                    player.stats.minutesPlayed = minutesData[playerId];
-                }
-            });
-            
-            updatePlayersTable();
-        }
-
-        function clearForm() {
-            document.getElementById('gameDate').value = '';
-            document.getElementById('opposition').value = '';
-            document.getElementById('tournament').value = '';
-            document.getElementById('gameType').value = '';
-            document.getElementById('venue').value = '';
-            
-            loadRoster(); // Reset to full roster
-        }
-
-        function addPlayerToRoster() {
-            const firstName = prompt('Enter player first name:');
-            if (!firstName) return;
-            
-            const lastName = prompt('Enter player last name:');
-            if (!lastName) return;
-            
-            const number = prompt('Enter jersey number:');
-            if (!number) return;
-            
-            // Check if number already exists
-            if (currentRoster.some(p => p.number === number)) {
-                alert('Jersey number already exists!');
-                return;
-            }
-            
-            const newPlayer = {
-                id: Math.max(...currentRoster.map(p => p.id)) + 1,
-                firstName: firstName.trim(),
-                lastName: lastName.trim(),
-                number: number.trim(),
-                position: '',
-                isStarter: false
-            };
-            
-            currentRoster.push(newPlayer);
-            currentRoster.sort((a, b) => parseInt(a.number) - parseInt(b.number));
-            localStorage.setItem('ateneoRoster', JSON.stringify(currentRoster));
-            updateManageView();
-        }
-
-        function removeFromRoster(playerId) {
-            if (confirm('Are you sure you want to remove this player from the roster?')) {
-                currentRoster = currentRoster.filter(p => p.id !== playerId);
-                localStorage.setItem('ateneoRoster', JSON.stringify(currentRoster));
-                updateManageView();
-            }
-        }
-
-        function updateJerseyNumber(playerId, newNumber) {
-            if (currentRoster.some(p => p.number === newNumber && p.id !== playerId)) {
-                alert('Jersey number already exists!');
-                return;
-            }
-            
-            const player = currentRoster.find(p => p.id === playerId);
-            if (player) {
-                player.number = newNumber;
-                localStorage.setItem('ateneoRoster', JSON.stringify(currentRoster));
-                updateManageView();
-            }
-        }
-
-        function updateManageView() {
-            const rosterList = document.getElementById('roster-list');
-            if (!rosterList) return;
-            
-            let html = `
-                <table class="stats-table">
-                    <thead>
-                        <tr>
-                            <th>Jersey #</th>
-                            <th>Name</th>
-                            <th>Position</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-            `;
-            
-            currentRoster.forEach(player => {
-                html += `
-                    <tr class="player-row">
-                        <td>
-                            <input type="text" value="${player.number}" 
-                                   onchange="updateJerseyNumber(${player.id}, this.value)"
-                                   class="table-input" style="width: 60px;">
-                        </td>
-                        <td>${getDisplayName(player, true)}</td>
-                        <td>
-                            <select onchange="updateRosterPosition(${player.id}, this.value)" class="table-select">
-                                <option value="">Pos</option>
-                                <option value="PG" ${player.position === 'PG' ? 'selected' : ''}>PG</option>
-                                <option value="SG" ${player.position === 'SG' ? 'selected' : ''}>SG</option>
-                                <option value="SF" ${player.position === 'SF' ? 'selected' : ''}>SF</option>
-                                <option value="PF" ${player.position === 'PF' ? 'selected' : ''}>PF</option>
-                                <option value="C" ${player.position === 'C' ? 'selected' : ''}>C</option>
-                            </select>
-                        </td>
-                        <td>
-                            <span class="dnp-toggle ${player.isStarter ? 'playing' : 'dnp'}">
-                                ${player.isStarter ? 'STARTER' : 'BENCH'}
-                            </span>
-                        </td>
-                        <td>
-                            <button onclick="removeFromRoster(${player.id})" class="btn btn-danger btn-small">
-                                Remove
-                            </button>
-                        </td>
-                    </tr>
-                `;
-            });
-            
-            html += '</tbody></table>';
-            rosterList.innerHTML = html;
-        }
-
-        function updateRosterPosition(playerId, position) {
-            const player = currentRoster.find(p => p.id === playerId);
-            if (player) {
-                player.position = position;
-                localStorage.setItem('ateneoRoster', JSON.stringify(currentRoster));
-            }
-        }
-
-        // View Navigation Functions
-        function showView(view) {
-            // Hide all views
-            const views = ['statsheet', 'averages', 'tournaments', 'yearly', 'games', 'manage'];
-            views.forEach(v => {
-                const viewElement = document.getElementById(v + '-view');
-                const btnElement = document.getElementById('btn-' + v);
-                if (viewElement) viewElement.classList.remove('active');
-                if (btnElement) btnElement.classList.remove('active');
-            });
-
-            // Show selected view
-            const selectedView = document.getElementById(view + '-view');
-            const selectedBtn = document.getElementById('btn-' + view);
-            if (selectedView) selectedView.classList.add('active');
-            if (selectedBtn) selectedBtn.classList.add('active');
-
-            // Update content based on view
-            if (view === 'averages') {
-                updateAveragesView();
-            } else if (view === 'tournaments') {
-                updateTournamentView();
-            } else if (view === 'yearly') {
-                updateYearlyView();
-            } else if (view === 'games') {
-                updateGamesView();
-            } else if (view === 'manage') {
-                updateManageView();
-            }
-        }
-
-        // Game Management Functions
+        // Save game
         function saveGame() {
-            const date = document.getElementById('gameDate').value;
-            const opposition = document.getElementById('opposition').value;
-            const tournament = document.getElementById('tournament').value;
-            const gameType = document.getElementById('gameType').value;
-            const venue = document.getElementById('venue').value;
-
-            if (!date || !opposition) {
-                alert('Please fill in the date and opposition!');
+            const gameData = {
+                id: gameIdCounter++,
+                date: document.getElementById('gameDate').value,
+                opposition: document.getElementById('opposition').value,
+                tournament: document.getElementById('tournament').value,
+                gameType: document.getElementById('gameType').value,
+                venue: document.getElementById('venue').value,
+                teamScore: parseInt(document.getElementById('teamScore').value) || null,
+                opponentScore: parseInt(document.getElementById('opponentScore').value) || null,
+                players: [...currentGamePlayers],
+                timestamp: new Date().toISOString()
+            };
+            
+            // Calculate win/loss
+            if (gameData.teamScore !== null && gameData.opponentScore !== null) {
+                gameData.result = gameData.teamScore > gameData.opponentScore ? 'W' : 'L';
+            }
+            
+            if (!gameData.date || !gameData.opposition) {
+                alert('Please fill in the date and opposition before saving.');
                 return;
             }
-
-            const gameData = {
-                id: Date.now(),
-                date: date,
-                opposition: opposition,
-                tournament: tournament,
-                gameType: gameType,
-                venue: venue,
-                players: JSON.parse(JSON.stringify(players)),
-                teamTotals: calculateTeamTotals(),
-                savedAt: new Date().toISOString()
-            };
             
             savedGames.push(gameData);
-            localStorage.setItem('ateneoGames', JSON.stringify(savedGames));
+            localStorage.setItem('basketballGames', JSON.stringify(savedGames));
+            localStorage.setItem('gameIdCounter', gameIdCounter.toString());
+            
             alert('Game saved successfully!');
         }
 
-        function calculateTeamTotals() {
-            const totals = {
-                fg2Att: 0, fg2Made: 0, fg3Att: 0, fg3Made: 0, ftAtt: 0, ftMade: 0,
-                offReb: 0, defReb: 0, assists: 0, steals: 0, blocks: 0, turnovers: 0,
-                fouls: 0, totalPoints: 0, fastbreakPoints: 0, minutesPlayed: 0
-            };
-
-            players.forEach(player => {
-                if (!player.isDNP) {
-                    Object.keys(totals).forEach(stat => {
-                        totals[stat] += player.stats[stat] || 0;
-                    });
-                }
-            });
-
-            return totals;
-        }
-
-        function copyToClipboard() {
-            const date = document.getElementById('gameDate').value;
-            const opposition = document.getElementById('opposition').value;
-            const tournament = document.getElementById('tournament').value;
-            const gameType = document.getElementById('gameType').value;
-            const venue = document.getElementById('venue').value;
-
-            let text = 'ATENEO DE MANILA UNIVERSITY - BLUE EAGLES\\n';
-            text += '"Lux in Domino" - Light in the Lord\\n\\n';
-            text += `Game: ${opposition} vs Ateneo Blue Eagles\\n`;
-            text += `Date: ${date}\\n`;
-            text += `Tournament: ${tournament}\\n`;
-            text += `Type: ${gameType}\\n`;
-            text += `Venue: ${venue}\\n\\n`;
-            text += 'Player\\t#\\tPos\\tStatus\\t2-Point FG\\t\\t3-Point FG\\t\\tFree Throw\\t\\tRebounds\\t\\tAst\\tStl\\tBlk\\tTO\\tFls\\tFB Pts\\tMin\\tTotal Pts\\n';
-            text += '\\t\\t\\t\\tAtt\\tMade\\tAtt\\tMade\\tAtt\\tMade\\tOff\\tDef\\t\\t\\t\\t\\t\\t\\t\\t\\n';
-            
-            players.forEach(player => {
-                const status = player.isDNP ? 'DNP' : 'PLAYED';
-                text += `${player.name}\\t${player.number}\\t${player.position}\\t${status}\\t${player.stats.fg2Att}\\t${player.stats.fg2Made}\\t${player.stats.fg3Att}\\t${player.stats.fg3Made}\\t${player.stats.ftAtt}\\t${player.stats.ftMade}\\t${player.stats.offReb}\\t${player.stats.defReb}\\t${player.stats.assists}\\t${player.stats.steals}\\t${player.stats.blocks}\\t${player.stats.turnovers}\\t${player.stats.fouls}\\t${player.stats.fastbreakPoints}\\t${player.stats.minutesPlayed}\\t${player.stats.totalPoints}\\n`;
-            });
-            
-            const teamTotals = calculateTeamTotals();
-            text += `\\nTEAM TOTALS:\\t\\t\\t\\t${teamTotals.fg2Att}\\t${teamTotals.fg2Made}\\t${teamTotals.fg3Att}\\t${teamTotals.fg3Made}\\t${teamTotals.ftAtt}\\t${teamTotals.ftMade}\\t${teamTotals.offReb}\\t${teamTotals.defReb}\\t${teamTotals.assists}\\t${teamTotals.steals}\\t${teamTotals.blocks}\\t${teamTotals.turnovers}\\t${teamTotals.fouls}\\t${teamTotals.fastbreakPoints}\\t${teamTotals.minutesPlayed}\\t${teamTotals.totalPoints}\\n`;
-            text += '\\n© 2025 AWBT. All rights reserved.\\n';
-
-            navigator.clipboard.writeText(text).then(() => {
-                alert('Blue Eagles stat sheet copied to clipboard!');
-            });
-        }
-
-        // View Update Functions
-        function updateAveragesView() {
-            const content = document.getElementById('averages-content');
-            if (savedGames.length === 0) {
-                content.innerHTML = '<p style="text-align: center; color: #e2e8f0;">No saved games yet. Start tracking games to see player averages!</p>';
-                return;
-            }
-
-            // Calculate player averages
-            const playerAverages = {};
-            
-            savedGames.forEach(game => {
-                game.players.forEach(player => {
-                    if (player.fullName && !player.isDNP) {
-                        if (!playerAverages[player.fullName]) {
-                            playerAverages[player.fullName] = {
-                                games: 0,
-                                totals: {
-                                    fg2Att: 0, fg2Made: 0, fg3Att: 0, fg3Made: 0, ftAtt: 0, ftMade: 0,
-                                    offReb: 0, defReb: 0, assists: 0, steals: 0, blocks: 0, turnovers: 0,
-                                    fouls: 0, totalPoints: 0, fastbreakPoints: 0, minutesPlayed: 0
-                                }
-                            };
-                        }
-                        
-                        playerAverages[player.fullName].games += 1;
-                        Object.keys(playerAverages[player.fullName].totals).forEach(stat => {
-                            playerAverages[player.fullName].totals[stat] += parseInt(player.stats[stat]) || 0;
-                        });
-                    }
-                });
-            });
-
-            // Calculate averages
-            Object.keys(playerAverages).forEach(playerName => {
-                const games = playerAverages[playerName].games;
-                Object.keys(playerAverages[playerName].totals).forEach(stat => {
-                    playerAverages[playerName].totals[stat] = (playerAverages[playerName].totals[stat] / games).toFixed(1);
-                });
-            });
-
-            let html = '<div class="table-container"><table class="stats-table">';
-            html += '<thead><tr><th>Player</th><th>Games</th><th>PPG</th><th>RPG</th><th>APG</th><th>SPG</th><th>BPG</th><th>FG%</th><th>3P%</th><th>FT%</th><th>FB Pts</th></tr></thead>';
-            html += '<tbody>';
-            
-            Object.entries(playerAverages).forEach(([playerName, stats]) => {
-                const fgPercentage = stats.totals.fg2Att > 0 ? ((stats.totals.fg2Made / stats.totals.fg2Att) * 100).toFixed(1) : '0.0';
-                const threePercentage = stats.totals.fg3Att > 0 ? ((stats.totals.fg3Made / stats.totals.fg3Att) * 100).toFixed(1) : '0.0';
-                const ftPercentage = stats.totals.ftAtt > 0 ? ((stats.totals.ftMade / stats.totals.ftAtt) * 100).toFixed(1) : '0.0';
-                const totalReb = (parseFloat(stats.totals.offReb) + parseFloat(stats.totals.defReb)).toFixed(1);
+        // Clear form for new game
+        function clearForm() {
+            if (confirm('Clear all data and start a new game?')) {
+                document.getElementById('gameDate').value = '';
+                document.getElementById('opposition').value = '';
+                document.getElementById('tournament').value = '';
+                document.getElementById('gameType').value = '';
+                document.getElementById('venue').value = '';
+                document.getElementById('teamScore').value = '';
+                document.getElementById('opponentScore').value = '';
                 
-                html += `<tr class="player-row">
-                    <td style="color: #3b82f6; font-weight: 600;">${playerName}</td>
-                    <td>${stats.games}</td>
-                    <td style="font-weight: 700;">${stats.totals.totalPoints}</td>
-                    <td>${totalReb}</td>
-                    <td>${stats.totals.assists}</td>
-                    <td>${stats.totals.steals}</td>
-                    <td>${stats.totals.blocks}</td>
-                    <td>${fgPercentage}%</td>
-                    <td>${threePercentage}%</td>
-                    <td>${ftPercentage}%</td>
-                    <td>${stats.totals.fastbreakPoints}</td>
-                </tr>`;
+                currentGamePlayers = [];
+                document.getElementById('playersTableBody').innerHTML = '';
+                updateTeamTotals();
+            }
+        }
+
+        // Copy stats to clipboard
+        function copyToClipboard() {
+            let statsText = `ATENEO BLUE EAGLES BASKETBALL STATISTICS\n`;
+            statsText += `===========================================\n`;
+            statsText += `Date: ${document.getElementById('gameDate').value}\n`;
+            statsText += `vs ${document.getElementById('opposition').value}\n`;
+            statsText += `Tournament: ${document.getElementById('tournament').value}\n`;
+            statsText += `Game Type: ${document.getElementById('gameType').value}\n`;
+            statsText += `Venue: ${document.getElementById('venue').value}\n\n`;
+            
+            const teamScore = document.getElementById('teamScore').value;
+            const opponentScore = document.getElementById('opponentScore').value;
+            if (teamScore && opponentScore) {
+                statsText += `FINAL SCORE: Blue Eagles ${teamScore} - ${opponentScore} ${document.getElementById('opposition').value}\n\n`;
+            }
+            
+            statsText += `PLAYER STATISTICS:\n`;
+            statsText += `Name\t#\tPos\tStatus\t2FGA\t2FGM\t3FGA\t3FGM\tFTA\tFTM\tORB\tDRB\tAST\tSTL\tBLK\tTO\tFL\tFB\tMIN\tPTS\n`;
+            
+            currentGamePlayers.forEach(player => {
+                const totalPoints = (player.fg2Made * 2) + (player.fg3Made * 3) + player.ftMade + player.fastbreakPoints;
+                statsText += `${player.firstName} ${player.lastName}\t${player.number}\t${player.position}\t${player.status}\t${player.fg2Att}\t${player.fg2Made}\t${player.fg3Att}\t${player.fg3Made}\t${player.ftAtt}\t${player.ftMade}\t${player.offReb}\t${player.defReb}\t${player.assists}\t${player.steals}\t${player.blocks}\t${player.turnovers}\t${player.fouls}\t${player.fastbreakPoints}\t${player.minutesPlayed}\t${totalPoints}\n`;
             });
             
-            html += '</tbody></table></div>';
-            content.innerHTML = html;
+            navigator.clipboard.writeText(statsText).then(() => {
+                alert('Statistics copied to clipboard!');
+            });
         }
 
-        function updateTournamentView() {
-            // Implementation for tournament view
-            const content = document.getElementById('tournaments-content');
-            content.innerHTML = '<p style="text-align: center; color: #e2e8f0;">Tournament stats coming soon!</p>';
-        }
-
-        function updateYearlyView() {
-            // Implementation for yearly view
-            const content = document.getElementById('yearly-content');
-            content.innerHTML = '<p style="text-align: center; color: #e2e8f0;">Yearly totals coming soon!</p>';
-        }
-
+        // Update games view
         function updateGamesView() {
-            const content = document.getElementById('games-content');
-            const tournamentFilter = document.getElementById('games-tournament-filter')?.value || '';
-            const typeFilter = document.getElementById('games-type-filter')?.value || '';
+            const container = document.getElementById('games-content');
+            const tournamentFilter = document.getElementById('games-tournament-filter').value;
+            const typeFilter = document.getElementById('games-type-filter').value;
             
             let filteredGames = savedGames;
             
@@ -1390,142 +1141,221 @@
             if (typeFilter) {
                 filteredGames = filteredGames.filter(game => game.gameType === typeFilter);
             }
-
+            
             if (filteredGames.length === 0) {
-                content.innerHTML = '<p style="text-align: center; color: #e2e8f0; padding: 2rem;">No games match the selected filters.</p>';
+                container.innerHTML = '<p style="text-align: center; color: #e2e8f0; padding: 2rem;">No games found matching the selected filters.</p>';
                 return;
             }
-
-            let html = '';
-            filteredGames.forEach(game => {
-                html += `
+            
+            container.innerHTML = filteredGames.map(game => {
+                const gameDate = new Date(game.date).toLocaleDateString();
+                let resultBadge = '';
+                let scoreDisplay = '';
+                
+                if (game.teamScore !== null && game.opponentScore !== null) {
+                    resultBadge = `<span class="win-loss-badge ${game.result === 'W' ? 'win-badge' : 'loss-badge'}">${game.result}</span>`;
+                    scoreDisplay = `<div style="margin-top: 0.5rem; font-weight: 600;">Final Score: ${game.teamScore} - ${game.opponentScore}</div>`;
+                }
+                
+                return `
                     <div class="game-card">
                         <div class="game-header">
                             <div>
-                                <div class="game-title">Blue Eagles vs ${game.opposition}</div>
-                                <div class="game-info">${game.date} • ${game.gameType} • ${game.venue}</div>
-                                <div class="game-info">Tournament: ${game.tournament || 'N/A'}</div>
-                                <div class="game-info">Final Score: ${game.teamTotals?.totalPoints || 0} pts</div>
+                                <div class="game-title">vs ${game.opposition}${resultBadge}</div>
+                                <div class="game-info">
+                                    ${gameDate} • ${game.tournament} • ${game.gameType}<br>
+                                    Venue: ${game.venue}
+                                    ${scoreDisplay}
+                                </div>
                             </div>
                             <div class="game-actions">
-                                <button onclick="loadGame(${game.id})" class="btn btn-primary btn-small">
-                                    Load Game
-                                </button>
-                                <button onclick="editGame(${game.id})" class="btn btn-secondary btn-small">
-                                    Edit
-                                </button>
-                                <button onclick="deleteGame(${game.id})" class="btn btn-danger btn-small">
-                                    Delete
-                                </button>
+                                <button class="btn btn-secondary btn-small" onclick="viewGameDetails(${game.id})">View Details</button>
+                                <button class="btn btn-danger btn-small" onclick="deleteGame(${game.id})">Delete</button>
                             </div>
                         </div>
                     </div>
                 `;
+            }).join('');
+        }
+
+        // Update averages view
+        function updateAveragesView() {
+            const container = document.getElementById('averages-content');
+            
+            if (savedGames.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #e2e8f0;">No saved games yet. Start tracking games to see player averages!</p>';
+                return;
+            }
+            
+            const playerStats = {};
+            
+            savedGames.forEach(game => {
+                game.players.forEach(player => {
+                    if (player.status === 'playing') {
+                        const key = `${player.firstName} ${player.lastName}`;
+                        if (!playerStats[key]) {
+                            playerStats[key] = {
+                                gamesPlayed: 0,
+                                totalPoints: 0, totalAssists: 0, totalRebounds: 0,
+                                totalSteals: 0, totalBlocks: 0, totalTurnovers: 0,
+                                totalFouls: 0, totalMinutes: 0,
+                                fg2Made: 0, fg2Att: 0, fg3Made: 0, fg3Att: 0,
+                                ftMade: 0, ftAtt: 0
+                            };
+                        }
+                        
+                        playerStats[key].gamesPlayed++;
+                        playerStats[key].totalPoints += (player.fg2Made * 2) + (player.fg3Made * 3) + player.ftMade + player.fastbreakPoints;
+                        playerStats[key].totalAssists += player.assists;
+                        playerStats[key].totalRebounds += player.offReb + player.defReb;
+                        playerStats[key].totalSteals += player.steals;
+                        playerStats[key].totalBlocks += player.blocks;
+                        playerStats[key].totalTurnovers += player.turnovers;
+                        playerStats[key].totalFouls += player.fouls;
+                        playerStats[key].totalMinutes += player.minutesPlayed;
+                        playerStats[key].fg2Made += player.fg2Made;
+                        playerStats[key].fg2Att += player.fg2Att;
+                        playerStats[key].fg3Made += player.fg3Made;
+                        playerStats[key].fg3Att += player.fg3Att;
+                        playerStats[key].ftMade += player.ftMade;
+                        playerStats[key].ftAtt += player.ftAtt;
+                    }
+                });
             });
             
-            content.innerHTML = html;
+            const playersArray = Object.entries(playerStats).map(([name, stats]) => ({
+                name,
+                gamesPlayed: stats.gamesPlayed,
+                ppg: (stats.totalPoints / stats.gamesPlayed).toFixed(1),
+                apg: (stats.totalAssists / stats.gamesPlayed).toFixed(1),
+                rpg: (stats.totalRebounds / stats.gamesPlayed).toFixed(1),
+                spg: (stats.totalSteals / stats.gamesPlayed).toFixed(1),
+                bpg: (stats.totalBlocks / stats.gamesPlayed).toFixed(1),
+                topg: (stats.totalTurnovers / stats.gamesPlayed).toFixed(1),
+                fpg: (stats.totalFouls / stats.gamesPlayed).toFixed(1),
+                mpg: (stats.totalMinutes / stats.gamesPlayed).toFixed(1),
+                fg2Pct: stats.fg2Att > 0 ? ((stats.fg2Made / stats.fg2Att) * 100).toFixed(1) : '0.0',
+                fg3Pct: stats.fg3Att > 0 ? ((stats.fg3Made / stats.fg3Att) * 100).toFixed(1) : '0.0',
+                ftPct: stats.ftAtt > 0 ? ((stats.ftMade / stats.ftAtt) * 100).toFixed(1) : '0.0'
+            }));
+            
+            playersArray.sort((a, b) => parseFloat(b.ppg) - parseFloat(a.ppg));
+            
+            let html = `
+                <div class="table-container">
+                    <table class="stats-table">
+                        <thead>
+                            <tr>
+                                <th>Player</th>
+                                <th>GP</th>
+                                <th>PPG</th>
+                                <th>APG</th>
+                                <th>RPG</th>
+                                <th>SPG</th>
+                                <th>BPG</th>
+                                <th>TOPG</th>
+                                <th>FPG</th>
+                                <th>MPG</th>
+                                <th>2FG%</th>
+                                <th>3FG%</th>
+                                <th>FT%</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+            
+            playersArray.forEach(player => {
+                html += `
+                    <tr class="player-row">
+                        <td style="text-align: left; font-weight: 600;">${player.name}</td>
+                        <td>${player.gamesPlayed}</td>
+                        <td>${player.ppg}</td>
+                        <td>${player.apg}</td>
+                        <td>${player.rpg}</td>
+                        <td>${player.spg}</td>
+                        <td>${player.bpg}</td>
+                        <td>${player.topg}</td>
+                        <td>${player.fpg}</td>
+                        <td>${player.mpg}</td>
+                        <td>${player.fg2Pct}%</td>
+                        <td>${player.fg3Pct}%</td>
+                        <td>${player.ftPct}%</td>
+                    </tr>
+                `;
+            });
+            
+            html += `
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            
+            container.innerHTML = html;
         }
 
-        function loadGame(gameId) {
-            const game = savedGames.find(g => g.id === gameId);
-            if (game) {
-                document.getElementById('gameDate').value = game.date;
-                document.getElementById('opposition').value = game.opposition;
-                document.getElementById('tournament').value = game.tournament || '';
-                document.getElementById('gameType').value = game.gameType || '';
-                document.getElementById('venue').value = game.venue || '';
-                players = JSON.parse(JSON.stringify(game.players));
-                updatePlayersTable();
-                showView('statsheet');
-            }
-        }
-
-        function editGame(gameId) {
-            loadGame(gameId);
-            // Remove the original game so it can be re-saved
-            savedGames = savedGames.filter(g => g.id !== gameId);
-            localStorage.setItem('ateneoGames', JSON.stringify(savedGames));
-            alert('Game loaded for editing. Make your changes and save again.');
-        }
-
-        function deleteGame(gameId) {
-            if (confirm('Are you sure you want to delete this game? This cannot be undone.')) {
-                savedGames = savedGames.filter(g => g.id !== gameId);
-                localStorage.setItem('ateneoGames', JSON.stringify(savedGames));
-                updateGamesView();
-                alert('Game deleted successfully.');
-            }
-        }
-
-        // Tournament Management Functions
-        function addTournament() {
-            const tournamentName = document.getElementById('new-tournament-name')?.value?.trim();
-            if (!tournamentName) {
-                alert('Please enter a tournament name!');
+        // Update tournaments view
+        function updateTournamentsView() {
+            const container = document.getElementById('tournaments-content');
+            
+            if (savedGames.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #e2e8f0;">No tournament games yet. Start tracking games to see tournament stats!</p>';
                 return;
             }
             
-            if (tournaments.includes(tournamentName)) {
-                alert('Tournament already exists!');
-                return;
-            }
+            const tournamentStats = {};
             
-            tournaments.push(tournamentName);
-            localStorage.setItem('ateneoTournaments', JSON.stringify(tournaments));
-            updateTournamentDropdowns();
-            updateManageView();
-            document.getElementById('new-tournament-name').value = '';
-            alert('Tournament added successfully!');
-        }
-
-        function removeTournament(tournamentName) {
-            if (confirm(`Are you sure you want to remove "${tournamentName}"?`)) {
-                tournaments = tournaments.filter(t => t !== tournamentName);
-                localStorage.setItem('ateneoTournaments', JSON.stringify(tournaments));
-                updateTournamentDropdowns();
-                updateManageView();
-            }
-        }
-
-        function updateTournamentDropdowns() {
-            const selects = ['tournament', 'games-tournament-filter'];
-            selects.forEach(selectId => {
-                const select = document.getElementById(selectId);
-                if (select) {
-                    const currentValue = select.value;
-                    const options = select.querySelectorAll('option:not(:first-child)');
-                    options.forEach(option => option.remove());
+            savedGames.forEach(game => {
+                if (game.tournament) {
+                    if (!tournamentStats[game.tournament]) {
+                        tournamentStats[game.tournament] = {
+                            games: 0, wins: 0, losses: 0,
+                            totalPoints: 0, totalOpponentPoints: 0,
+                            players: {}
+                        };
+                    }
                     
-                    tournaments.forEach(tournament => {
-                        const option = document.createElement('option');
-                        option.value = tournament;
-                        option.textContent = tournament;
-                        select.appendChild(option);
+                    const tStats = tournamentStats[game.tournament];
+                    tStats.games++;
+                    
+                    if (game.result === 'W') tStats.wins++;
+                    if (game.result === 'L') tStats.losses++;
+                    
+                    if (game.teamScore !== null) tStats.totalPoints += game.teamScore;
+                    if (game.opponentScore !== null) tStats.totalOpponentPoints += game.opponentScore;
+                    
+                    game.players.forEach(player => {
+                        if (player.status === 'playing') {
+                            const key = `${player.firstName} ${player.lastName}`;
+                            if (!tStats.players[key]) {
+                                tStats.players[key] = { games: 0, points: 0, assists: 0, rebounds: 0 };
+                            }
+                            
+                            tStats.players[key].games++;
+                            tStats.players[key].points += (player.fg2Made * 2) + (player.fg3Made * 3) + player.ftMade + player.fastbreakPoints;
+                            tStats.players[key].assists += player.assists;
+                            tStats.players[key].rebounds += player.offReb + player.defReb;
+                        }
                     });
-                    
-                    select.value = currentValue;
                 }
             });
-        }
-
-        function exportRoster() {
-            const rosterText = currentRoster.map(p => 
-                `${p.number}\t${p.firstName} ${p.lastName}\t${p.position}\t${p.isStarter ? 'STARTER' : 'BENCH'}`
-            ).join('\n');
             
-            const fullText = `Ateneo Blue Eagles Roster\n\nJersey#\tName\tPosition\tStatus\n${rosterText}`;
+            let html = '';
             
-            navigator.clipboard.writeText(fullText).then(() => {
-                alert('Roster copied to clipboard!');
-            });
-        }
-
-        // Initialize the application
-        document.addEventListener('DOMContentLoaded', function() {
-            loadRoster();
-            updateManageView();
-            updateTournamentDropdowns();
-        });
-    </script>
-</body>
-</html>
+            Object.entries(tournamentStats).forEach(([tournament, stats]) => {
+                const avgPoints = stats.games > 0 ? (stats.totalPoints / stats.games).toFixed(1) : '0.0';
+                const avgOpponentPoints = stats.games > 0 ? (stats.totalOpponentPoints / stats.games).toFixed(1) : '0.0';
+                
+                html += `
+                    <div class="card">
+                        <h3 style="color: #3b82f6; margin-bottom: 1rem; font-weight: 700;">${tournament}</h3>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+                            <div style="text-align: center; background: rgba(59, 130, 246, 0.1); padding: 1rem; border-radius: 8px;">
+                                <div style="font-size: 2rem; font-weight: 700; color: #3b82f6;">${stats.games}</div>
+                                <div style="color: #e2e8f0;">Games Played</div>
+                            </div>
+                            <div style="text-align: center; background: rgba(5, 150, 105, 0.1); padding: 1rem; border-radius: 8px;">
+                                <div style="font-size: 2rem; font-weight: 700; color: #059669;">${stats.wins}</div>
+                                <div style="color: #e2e8f0;">Wins</div>
+                            </div>
+                            <div style="text-align: center; background: rgba(220, 38, 38, 0.1); padding: 1rem; border-radius: 8px;">
+                                <div style="font-
