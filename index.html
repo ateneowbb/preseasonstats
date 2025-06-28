@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ateneo Blue Eagles Basketball Stat Sheet</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <style>
+        .bg-blue-900 { background-color: #1e3a8a; }
+        .text-blue-900 { color: #1e3a8a; }
+        .border-blue-300 { border-color: #93c5fd; }
+        .bg-blue-50 { background-color: #eff6ff; }
+        .bg-blue-100 { background-color: #dbeafe; }
+        .hover\:bg-blue-700:hover { background-color: #1d4ed8; }
+        .hover\:bg-blue-800:hover { background-color: #1e40af; }
+        .focus\:ring-blue-500:focus { --tw-ring-color: #3b82f6; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Navigation -->
+    <nav class="bg-blue-900 text-white p-4 shadow-lg">
+        <div class="max-w-6xl mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-2">
+                <span class="text-2xl">🦅</span>
+                <span class="font-bold text-xl">Blue Eagles Stats</span>
+            </div>
+            <div class="flex gap-2">
+                <button onclick="showView('statsheet')" id="btn-statsheet" class="flex items-center gap-1 px-3 py-2 rounded transition-colors bg-blue-700">
+                    📊 Stat Sheet
+                </button>
+                <button onclick="showView('averages')" id="btn-averages" class="flex items-center gap-1 px-3 py-2 rounded transition-colors hover:bg-blue-800">
+                    📈 Averages
+                </button>
+                <button onclick="showView('games')" id="btn-games" class="flex items-center gap-1 px-3 py-2 rounded transition-colors hover:bg-blue-800">
+                    📅 Saved Games
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Stat Sheet View -->
+    <div id="statsheet-view" class="max-w-8xl mx-auto p-6 bg-gradient-to-br from-blue-50 to-white min-h-screen">
+        <!-- Header -->
+        <div class="text-center mb-8 bg-blue-900 text-white p-6 rounded-lg shadow-lg">
+            <div class="flex items-center justify-center gap-4 mb-4">
+                <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center">
+                    <span class="text-blue-900 font-bold text-2xl">🦅</span>
+                </div>
+                <div>
+                    <h1 class="text-3xl font-bold">ATENEO DE MANILA UNIVERSITY</h1>
+                    <p class="text-blue-200 text-lg">Blue Eagles Basketball</p>
+                    <p class="text-blue-300 text-sm italic">"Lux in Domino" - Light in the Lord</p>
+                </div>
+                <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center">
+                    <span class="text-blue-900 font-bold text-2xl">🦅</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game Information -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6 bg-white p-4 rounded-lg shadow">
+            <div>
+                <label class="block text-sm font-medium text-blue-900 mb-1">Date:</label>
+                <input type="date" id="gameDate" class="w-full border border-blue-300 rounded px-3 py-2 focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-blue-900 mb-1">vs Opposition:</label>
+                <input type="text" id="opposition" placeholder="Opponent team" class="w-full border border-blue-300 rounded px-3 py-2 focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-blue-900 mb-1">Game Type:</label>
+                <select id="gameType" class="w-full border border-blue-300 rounded px-3 py-2 focus:ring-2 focus:ring-blue-500">
+                    <option value="Regular">Regular Season</option>
+                    <option value="Playoffs">Playoffs</option>
+                    <option value="Finals">Finals</option>
+                    <option value="Exhibition">Exhibition</option>
+                    <option value="UAAP">UAAP</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-blue-900 mb-1">Venue:</label>
+                <input type="text" id="venue" placeholder="Game venue" class="w-full border border-blue-300 rounded px-3 py-2 focus:ring-2 focus:ring-blue-500">
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex flex-wrap gap-2 justify-center mb-6">
+            <button onclick="addPlayer()" class="flex items-center gap-1 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors">
+                ➕ Add Player
+            </button>
+            <button onclick="copyToClipboard()" class="flex items-center gap-1 bg-blue-800 text-white px-4 py-2 rounded hover:bg-blue-900 transition-colors">
+                📋 Copy Stats
+            </button>
+            <button onclick="saveGame()" class="flex items-center gap-1 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition-colors">
+                💾 Save Game
+            </button>
+        </div>
+
+        <!-- Stats Table -->
+        <div class="overflow-x-auto bg-white rounded-lg shadow">
+            <table class="w-full border-collapse text-xs" id="statsTable">
+                <thead>
+                    <tr class="bg-blue-900 text-white">
+                        <th class="border border-blue-300 p-2 w-32">Player</th>
+                        <th class="border border-blue-300 p-2 w-12">#</th>
+                        <th class="border border-blue-300 p-2 w-16">Pos</th>
+                        <th class="border border-blue-300 p-1" colspan="2">2-Point FG</th>
+                        <th class="border border-blue-300 p-1" colspan="2">3-Point FG</th>
+                        <th class="border border-blue-300 p-1" colspan="2">Free Throw</th>
+                        <th class="border border-blue-300 p-1" colspan="2">Rebounds</th>
+                        <th class="border border-blue-300 p-2 w-12">Ast</th>
+                        <th class="border border-blue-300 p-2 w-12">Stl</th>
+                        <th class="border border-blue-300 p-2 w-12">Blk</th>
+                        <th class="border border-blue-300 p-2 w-12">TO</th>
+                        <th class="border border-blue-300 p-2 w-12">Fls</th>
+                        <th class="border border-blue-300 p-2 w-16">FB Pts</th>
+                        <th class="border border-blue-300 p-2 w-12">Min</th>
+                        <th class="border border-blue-300 p-2 w-16">Total Pts</th>
+                        <th class="border border-blue-300 p-2 w-12">Action</th>
+                    </tr>
+                    <tr class="bg-blue-100">
+                        <th class="border border-blue-300 p-1"></th>
+                        <th class="border border-blue-300 p-1"></th>
+                        <th class="border border-blue-300 p-1"></th>
+                        <th class="border border-blue-300 p-1 text-xs">Att</th>
+                        <th class="border border-blue-300 p-1 text-xs">Made</th>
+                        <th class="border border-blue-300 p-1 text-xs">Att</th>
+                        <th class="border border-blue-300 p-1 text-xs">Made</th>
+                        <th class="border border-blue-300 p-1 text-xs">Att</th>
+                        <th class="border border-blue-300 p-1 text-xs">Made</th>
+                        <th class="border border-blue-300 p-1 text-xs">Off</th>
+                        <th class="border border-blue-300 p-1 text-xs">Def</th>
+                        <th class="border border-blue-300 p-1"></th>
+                        <th class="border border-blue-300 p-1"></th>
+                        <th class="border border-blue-300 p-1"></th>
+                        <th class="border border-blue-300 p-1"></th>
+                        <th class="border border-blue-300 p-1"></th>
+                        <th class="border border-blue-300 p-1"></th>
+                        <th class="border border-blue-300 p-1"></th>
+                        <th class="border border-blue-300 p-1"></th>
+                        <th class="border border-blue-300 p-1"></th>
+                    </tr>
+                </thead>
+                <tbody id="playersTableBody">
+                    <!-- Players will be added here -->
+                </tbody>
+                <tfoot>
+                    <tr class="bg-blue-900 text-white font-bold">
+                        <td class="border border-blue-300 p-2">TEAM TOTALS:</td>
+                        <td class="border border-blue-300 p-1"></td>
+                        <td class="border border-blue-300 p-1"></td>
+                        <td class="border border-blue-300 p-1 text-center text-xs" id="total-fg2Att">0</td>
+                        <td class="border border-blue-300 p-1 text-center text-xs" id="total-fg2Made">0</td>
+                        <td class="border border-blue-300 p-1 text-center text-xs" id="total-fg3Att">0</td>
+                        <td class="border border-blue-300 p-1 text-center text-xs" id="total-fg3Made">0</td>
+                        <td class="border border-blue-300 p-1 text-center text-xs" id="total-ftAtt">0</td>
+                        <td class="border border-blue-300 p-1 text-center text-xs" id="total-ftMade">0</td>
+                        <td class="border border-blue-300 p-1 text-center text-xs" id="total-offReb">0</td>
+                        <td class="border border-blue-300 p-1 text-center text-xs" id="total-defReb">0</td>
+                        <td class="border border-blue-300 p-1 text-center text-xs" id="total-assists">0</td>
+                        <td class="border border-blue-300 p-1 text-center text-xs" id="total-steals">0</td>
+                        <td class="border border-blue-300 p-1 text-center text-xs" id="total-blocks">0</td>
+                        <td class="border border-blue-300 p-1 text-center text-xs" id="total-turnovers">0</td>
+                        <td class="border border-blue-300 p-1 text-center text-xs" id="total-fouls">0</td>
+                        <td class="border border-blue-300 p-1 text-center text-xs" id="total-fastbreakPoints">0</td>
+                        <td class="border border-blue-300 p-1 text-center text-xs" id="total-minutesPlayed">0</td>
+                        <td class="border border-blue-300 p-1 text-center text-xs" id="total-totalPoints">0</td>
+                        <td class="border border-blue-300 p-1"></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+
+        <div class="mt-6 text-center text-blue-900">
+            <p class="font-bold">ONE BIG FIGHT! 💙🦅</p>
+            <p class="text-sm">Ateneo de Manila University Basketball</p>
+        </div>
+    </div>
+
+    <!-- Averages View -->
+    <div id="averages-view" class="max-w-6xl mx-auto p-6 bg-gradient-to-br from-blue-50 to-white min-h-screen" style="display: none;">
+        <div class="text-center mb-8 bg-blue-900 text-white p-6 rounded-lg shadow-lg">
+            <h1 class="text-3xl font-bold">BLUE EAGLES SEASON AVERAGES</h1>
+            <p class="text-blue-200">Player Statistics Overview</p>
+        </div>
+        <div id="averages-content" class="text-center py-12">
+            <p class="text-gray-600 text-lg">No saved games yet. Start tracking games to see player averages!</p>
+        </div>
+    </div>
+
+    <!-- Saved Games View -->
+    <div id="games-view" class="max-w-6xl mx-auto p-6 bg-gradient-to-br from-blue-50 to-white min-h-screen" style="display: none;">
+        <div class="text-center mb-8 bg-blue-900 text-white p-6 rounded-lg shadow-lg">
+            <h1 class="text-3xl font-bold">SAVED GAMES</h1>
+            <p class="text-blue-200">Game History & Archives</p>
+        </div>
+        <div id="games-content" class="text-center py-12">
+            <p class="text-gray-600 text-lg">No saved games yet. Start tracking games to build your archive!</p>
+        </div>
+    </div>
+
+    <script>
+        let players = [];
+        let playerIdCounter = 1;
+        let savedGames = JSON.parse(localStorage.getItem('ateneoGames') || '[]');
+
+        // Initialize with one player
+        addPlayer();
+
+        function showView(view) {
+            // Hide all views
+            document.getElementById('statsheet-view').style.display = 'none';
+            document.getElementById('averages-view').style.display = 'none';
+            document.getElementById('games-view').style.display = 'none';
+
+            // Reset button styles
+            document.getElementById('btn-statsheet').className = 'flex items-center gap-1 px-3 py-2 rounded transition-colors hover:bg-blue-800';
+            document.getElementById('btn-averages').className = 'flex items-center gap-1 px-3 py-2 rounded transition-colors hover:bg-blue-800';
+            document.getElementById('btn-games').className = 'flex items-center gap-1 px-3 py-2 rounded transition-colors hover:bg-blue-800';
+
+            // Show selected view and update button
+            document.getElementById(view + '-view').style.display = 'block';
+            document.getElementById('btn-' + view).className = 'flex items-center gap-1 px-3 py-2 rounded transition-colors bg-blue-700';
+
+            if (view === 'averages') {
+                updateAveragesView();
+            } else if (view === 'games') {
+                updateGamesView();
+            }
+        }
+
+        function addPlayer() {
+            const player = {
+                id: playerIdCounter++,
+                name: '',
+                number: '',
+                position: '',
+                stats: {
+                    fg2Att: 0, fg2Made: 0, fg3Att: 0, fg3Made: 0, ftAtt: 0, ftMade: 0,
+                    offReb: 0, defReb: 0, assists: 0, steals: 0, blocks: 0, turnovers: 0,
+                    fouls: 0, totalPoints: 0, fastbreakPoints: 0, minutesPlayed: 0
+                }
+            };
+            players.push(player);
+            updatePlayersTable();
+        }
+
+        function removePlayer(id) {
+            if (players.length > 1) {
+                players = players.filter(p => p.id !== id);
+                updatePlayersTable();
+            }
+        }
+
+        function updatePlayersTable() {
+            const tbody = document.getElementById('playersTableBody');
+            tbody.innerHTML = '';
+
+            players.forEach((player, index) => {
+                const row = document.createElement('tr');
+                row.className = index % 2 === 0 ? 'bg-blue-50' : 'bg-white';
+                
+                row.innerHTML = `
+                    <td class="border border-blue-300 p-1">
+                        <input type="text" value="${player.name}" onchange="updatePlayer(${player.id}, 'name', this.value)" 
+                               placeholder="Player name" class="w-full border-none outline-none text-xs bg-transparent">
+                    </td>
+                    <td class="border border-blue-300 p-1">
+                        <input type="text" value="${player.number}" onchange="updatePlayer(${player.id}, 'number', this.value)" 
+                               placeholder="#" class="w-full border-none outline-none text-xs text-center bg-transparent">
+                    </td>
+                    <td class="border border-blue-300 p-1">
+                        <select onchange="updatePlayer(${player.id}, 'position', this.value)" class="w-full border-none outline-none text-xs bg-transparent">
+                            <option value="">Pos</option>
+                            <option value="PG" ${player.position === 'PG' ? 'selected' : ''}>PG</option>
+                            <option value="SG" ${player.position === 'SG' ? 'selected' : ''}>SG</option>
+                            <option value="SF" ${player.position === 'SF' ? 'selected' : ''}>SF</option>
+                            <option value="PF" ${player.position === 'PF' ? 'selected' : ''}>PF</option>
+                            <option value="C" ${player.position === 'C' ? 'selected' : ''}>C</option>
+                        </select>
+                    </td>
+                    ${Object.keys(player.stats).map(stat => `
+                        <td class="border border-blue-300 p-1">
+                            <input type="number" value="${player.stats[stat]}" min="0" 
+                                   onchange="updatePlayerStat(${player.id}, '${stat}', this.value)"
+                                   class="w-full border-none outline-none text-xs text-center bg-transparent">
+                        </td>
+                    `).join('')}
+                    <td class="border border-blue-300 p-1 text-center">
+                        <button onclick="removePlayer(${player.id})" class="text-red-500 hover:text-red-700" 
+                                ${players.length === 1 ? 'disabled' : ''}>
+                            ➖
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+            updateTotals();
+        }
+
+        function updatePlayer(id, field, value) {
+            const player = players.find(p => p.id === id);
+            if (player) {
+                player[field] = value;
+            }
+        }
+
+        function updatePlayerStat(id, stat, value) {
+            const player = players.find(p => p.id === id);
+            if (player) {
+                player.stats[stat] = parseInt(value) || 0;
+                updateTotals();
+            }
+        }
+
+        function updateTotals() {
+            const totals = {
+                fg2Att: 0, fg2Made: 0, fg3Att: 0, fg3Made: 0, ftAtt: 0, ftMade: 0,
+                offReb: 0, defReb: 0, assists: 0, steals: 0, blocks: 0, turnovers: 0,
+                fouls: 0, totalPoints: 0, fastbreakPoints: 0, minutesPlayed: 0
+            };
+
+            players.forEach(player => {
+                Object.keys(totals).forEach(stat => {
+                    totals[stat] += player.stats[stat];
+                });
+            });
+
+            Object.keys(totals).forEach(stat => {
+                const element = document.getElementById('total-' + stat);
+                if (element) {
+                    element.textContent = totals[stat];
+                }
+            });
+        }
+
+        function copyToClipboard() {
+            const date = document.getElementById('gameDate').value;
+            const opposition = document.getElementById('opposition').value;
+            const gameType = document.getElementById('gameType').value;
+            const venue = document.getElementById('venue').value;
+
+            let text = 'ATENEO DE MANILA UNIVERSITY - BLUE EAGLES\\n';
+            text += '"Lux in Domino" - Light in the Lord\\n\\n';
+            text += `Game: ${opposition} vs Ateneo Blue Eagles\\n`;
+            text += `Date: ${date}\\n`;
+            text += `Type: ${gameType}\\n`;
+            text += `Venue: ${venue}\\n\\n`;
+            text += 'Player\\t#\\tPos\\t2-Point FG\\t\\t3-Point FG\\t\\tFree Throw\\t\\tRebounds\\t\\tAst\\tStl\\tBlk\\tTO\\tFls\\tFB Pts\\tMin\\tTotal Pts\\n';
+            text += '\\t\\t\\tAtt\\tMade\\tAtt\\tMade\\tAtt\\tMade\\tOff\\tDef\\t\\t\\t\\t\\t\\t\\t\\t\\n';
+            
+            players.forEach(player => {
+                text += `${player.name}\\t${player.number}\\t${player.position}\\t${player.stats.fg2Att}\\t${player.stats.fg2Made}\\t${player.stats.fg3Att}\\t${player.stats.fg3Made}\\t${player.stats.ftAtt}\\t${player.stats.ftMade}\\t${player.stats.offReb}\\t${player.stats.defReb}\\t${player.stats.assists}\\t${player.stats.steals}\\t${player.stats.blocks}\\t${player.stats.turnovers}\\t${player.stats.fouls}\\t${player.stats.fastbreakPoints}\\t${player.stats.minutesPlayed}\\t${player.stats.totalPoints}\\n`;
+            });
+            
+            text += '\\nONE BIG FIGHT! 💙🦅\\n';
+
+            navigator.clipboard.writeText(text).then(() => {
+                alert('Blue Eagles stat sheet copied to clipboard!');
+            });
+        }
+
+        function saveGame() {
+            const gameData = {
+                id: Date.now(),
+                date: document.getElementById('gameDate').value,
+                opposition: document.getElementById('opposition').value,
+                gameType: document.getElementById('gameType').value,
+                venue: document.getElementById('venue').value,
+                players: JSON.parse(JSON.stringify(players)),
+                savedAt: new Date().toISOString()
+            };
+            
+            savedGames.push(gameData);
+            localStorage.setItem('ateneoGames', JSON.stringify(savedGames));
+            alert('Game saved successfully!');
+        }
+
+        function updateAveragesView() {
+            const content = document.getElementById('averages-content');
+            if (savedGames.length === 0) {
+                content.innerHTML = '<p class="text-gray-600 text-lg">No saved games yet. Start tracking games to see player averages!</p>';
+                return;
+            }
+
+            // Calculate averages logic here
+            content.innerHTML = '<p class="text-blue-900 text-lg">Player averages will be displayed here based on saved games.</p>';
+        }
+
+        function updateGamesView() {
+            const content = document.getElementById('games-content');
+            if (savedGames.length === 0) {
+                content.innerHTML = '<p class="text-gray-600 text-lg">No saved games yet. Start tracking games to build your archive!</p>';
+                return;
+            }
+
+            let html = '<div class="grid gap-4">';
+            savedGames.forEach(game => {
+                html += `
+                    <div class="bg-white p-4 rounded-lg shadow hover:shadow-lg transition-shadow">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <h3 class="text-lg font-bold text-blue-900">Blue Eagles vs ${game.opposition}</h3>
+                                <p class="text-gray-600">${game.date} • ${game.gameType} • ${game.venue}</p>
+                            </div>
+                            <button onclick="loadGame(${game.id})" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors">
+                                Load Game
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+            html += '</div>';
+            content.innerHTML = html;
+        }
+
+        function loadGame(gameId) {
+            const game = savedGames.find(g => g.id === gameId);
+            if (game) {
+                document.getElementById('gameDate').value = game.date;
+                document.getElementById('opposition').value = game.opposition;
+                document.getElementById('gameType').value = game.gameType;
+                document.getElementById('venue').value = game.venue;
+                players = JSON.parse(JSON.stringify(game.players));
+                updatePlayersTable();
+                showView('statsheet');
+            }
+        }
+    </script>
+</body>
+</html>
