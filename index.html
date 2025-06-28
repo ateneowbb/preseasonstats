@@ -598,7 +598,7 @@
                 <table class="stats-table">
                     <thead>
                         <tr>
-                            <th rowspan="2">Player</th>
+                            <th rowspan="2" style="width: 180px;">Player</th>
                             <th rowspan="2">#</th>
                             <th rowspan="2">Pos</th>
                             <th rowspan="2">Status</th>
@@ -1183,3 +1183,349 @@
                 localStorage.setItem('ateneoRoster', JSON.stringify(currentRoster));
             }
         }
+
+        // View Navigation Functions
+        function showView(view) {
+            // Hide all views
+            const views = ['statsheet', 'averages', 'tournaments', 'yearly', 'games', 'manage'];
+            views.forEach(v => {
+                const viewElement = document.getElementById(v + '-view');
+                const btnElement = document.getElementById('btn-' + v);
+                if (viewElement) viewElement.classList.remove('active');
+                if (btnElement) btnElement.classList.remove('active');
+            });
+
+            // Show selected view
+            const selectedView = document.getElementById(view + '-view');
+            const selectedBtn = document.getElementById('btn-' + view);
+            if (selectedView) selectedView.classList.add('active');
+            if (selectedBtn) selectedBtn.classList.add('active');
+
+            // Update content based on view
+            if (view === 'averages') {
+                updateAveragesView();
+            } else if (view === 'tournaments') {
+                updateTournamentView();
+            } else if (view === 'yearly') {
+                updateYearlyView();
+            } else if (view === 'games') {
+                updateGamesView();
+            } else if (view === 'manage') {
+                updateManageView();
+            }
+        }
+
+        // Game Management Functions
+        function saveGame() {
+            const date = document.getElementById('gameDate').value;
+            const opposition = document.getElementById('opposition').value;
+            const tournament = document.getElementById('tournament').value;
+            const gameType = document.getElementById('gameType').value;
+            const venue = document.getElementById('venue').value;
+
+            if (!date || !opposition) {
+                alert('Please fill in the date and opposition!');
+                return;
+            }
+
+            const gameData = {
+                id: Date.now(),
+                date: date,
+                opposition: opposition,
+                tournament: tournament,
+                gameType: gameType,
+                venue: venue,
+                players: JSON.parse(JSON.stringify(players)),
+                teamTotals: calculateTeamTotals(),
+                savedAt: new Date().toISOString()
+            };
+            
+            savedGames.push(gameData);
+            localStorage.setItem('ateneoGames', JSON.stringify(savedGames));
+            alert('Game saved successfully!');
+        }
+
+        function calculateTeamTotals() {
+            const totals = {
+                fg2Att: 0, fg2Made: 0, fg3Att: 0, fg3Made: 0, ftAtt: 0, ftMade: 0,
+                offReb: 0, defReb: 0, assists: 0, steals: 0, blocks: 0, turnovers: 0,
+                fouls: 0, totalPoints: 0, fastbreakPoints: 0, minutesPlayed: 0
+            };
+
+            players.forEach(player => {
+                if (!player.isDNP) {
+                    Object.keys(totals).forEach(stat => {
+                        totals[stat] += player.stats[stat] || 0;
+                    });
+                }
+            });
+
+            return totals;
+        }
+
+        function copyToClipboard() {
+            const date = document.getElementById('gameDate').value;
+            const opposition = document.getElementById('opposition').value;
+            const tournament = document.getElementById('tournament').value;
+            const gameType = document.getElementById('gameType').value;
+            const venue = document.getElementById('venue').value;
+
+            let text = 'ATENEO DE MANILA UNIVERSITY - BLUE EAGLES\\n';
+            text += '"Lux in Domino" - Light in the Lord\\n\\n';
+            text += `Game: ${opposition} vs Ateneo Blue Eagles\\n`;
+            text += `Date: ${date}\\n`;
+            text += `Tournament: ${tournament}\\n`;
+            text += `Type: ${gameType}\\n`;
+            text += `Venue: ${venue}\\n\\n`;
+            text += 'Player\\t#\\tPos\\tStatus\\t2-Point FG\\t\\t3-Point FG\\t\\tFree Throw\\t\\tRebounds\\t\\tAst\\tStl\\tBlk\\tTO\\tFls\\tFB Pts\\tMin\\tTotal Pts\\n';
+            text += '\\t\\t\\t\\tAtt\\tMade\\tAtt\\tMade\\tAtt\\tMade\\tOff\\tDef\\t\\t\\t\\t\\t\\t\\t\\t\\n';
+            
+            players.forEach(player => {
+                const status = player.isDNP ? 'DNP' : 'PLAYED';
+                text += `${player.name}\\t${player.number}\\t${player.position}\\t${status}\\t${player.stats.fg2Att}\\t${player.stats.fg2Made}\\t${player.stats.fg3Att}\\t${player.stats.fg3Made}\\t${player.stats.ftAtt}\\t${player.stats.ftMade}\\t${player.stats.offReb}\\t${player.stats.defReb}\\t${player.stats.assists}\\t${player.stats.steals}\\t${player.stats.blocks}\\t${player.stats.turnovers}\\t${player.stats.fouls}\\t${player.stats.fastbreakPoints}\\t${player.stats.minutesPlayed}\\t${player.stats.totalPoints}\\n`;
+            });
+            
+            const teamTotals = calculateTeamTotals();
+            text += `\\nTEAM TOTALS:\\t\\t\\t\\t${teamTotals.fg2Att}\\t${teamTotals.fg2Made}\\t${teamTotals.fg3Att}\\t${teamTotals.fg3Made}\\t${teamTotals.ftAtt}\\t${teamTotals.ftMade}\\t${teamTotals.offReb}\\t${teamTotals.defReb}\\t${teamTotals.assists}\\t${teamTotals.steals}\\t${teamTotals.blocks}\\t${teamTotals.turnovers}\\t${teamTotals.fouls}\\t${teamTotals.fastbreakPoints}\\t${teamTotals.minutesPlayed}\\t${teamTotals.totalPoints}\\n`;
+            text += '\\n© 2025 AWBT. All rights reserved.\\n';
+
+            navigator.clipboard.writeText(text).then(() => {
+                alert('Blue Eagles stat sheet copied to clipboard!');
+            });
+        }
+
+        // View Update Functions
+        function updateAveragesView() {
+            const content = document.getElementById('averages-content');
+            if (savedGames.length === 0) {
+                content.innerHTML = '<p style="text-align: center; color: #e2e8f0;">No saved games yet. Start tracking games to see player averages!</p>';
+                return;
+            }
+
+            // Calculate player averages
+            const playerAverages = {};
+            
+            savedGames.forEach(game => {
+                game.players.forEach(player => {
+                    if (player.fullName && !player.isDNP) {
+                        if (!playerAverages[player.fullName]) {
+                            playerAverages[player.fullName] = {
+                                games: 0,
+                                totals: {
+                                    fg2Att: 0, fg2Made: 0, fg3Att: 0, fg3Made: 0, ftAtt: 0, ftMade: 0,
+                                    offReb: 0, defReb: 0, assists: 0, steals: 0, blocks: 0, turnovers: 0,
+                                    fouls: 0, totalPoints: 0, fastbreakPoints: 0, minutesPlayed: 0
+                                }
+                            };
+                        }
+                        
+                        playerAverages[player.fullName].games += 1;
+                        Object.keys(playerAverages[player.fullName].totals).forEach(stat => {
+                            playerAverages[player.fullName].totals[stat] += parseInt(player.stats[stat]) || 0;
+                        });
+                    }
+                });
+            });
+
+            // Calculate averages
+            Object.keys(playerAverages).forEach(playerName => {
+                const games = playerAverages[playerName].games;
+                Object.keys(playerAverages[playerName].totals).forEach(stat => {
+                    playerAverages[playerName].totals[stat] = (playerAverages[playerName].totals[stat] / games).toFixed(1);
+                });
+            });
+
+            let html = '<div class="table-container"><table class="stats-table">';
+            html += '<thead><tr><th>Player</th><th>Games</th><th>PPG</th><th>RPG</th><th>APG</th><th>SPG</th><th>BPG</th><th>FG%</th><th>3P%</th><th>FT%</th><th>FB Pts</th></tr></thead>';
+            html += '<tbody>';
+            
+            Object.entries(playerAverages).forEach(([playerName, stats]) => {
+                const fgPercentage = stats.totals.fg2Att > 0 ? ((stats.totals.fg2Made / stats.totals.fg2Att) * 100).toFixed(1) : '0.0';
+                const threePercentage = stats.totals.fg3Att > 0 ? ((stats.totals.fg3Made / stats.totals.fg3Att) * 100).toFixed(1) : '0.0';
+                const ftPercentage = stats.totals.ftAtt > 0 ? ((stats.totals.ftMade / stats.totals.ftAtt) * 100).toFixed(1) : '0.0';
+                const totalReb = (parseFloat(stats.totals.offReb) + parseFloat(stats.totals.defReb)).toFixed(1);
+                
+                html += `<tr class="player-row">
+                    <td style="color: #3b82f6; font-weight: 600;">${playerName}</td>
+                    <td>${stats.games}</td>
+                    <td style="font-weight: 700;">${stats.totals.totalPoints}</td>
+                    <td>${totalReb}</td>
+                    <td>${stats.totals.assists}</td>
+                    <td>${stats.totals.steals}</td>
+                    <td>${stats.totals.blocks}</td>
+                    <td>${fgPercentage}%</td>
+                    <td>${threePercentage}%</td>
+                    <td>${ftPercentage}%</td>
+                    <td>${stats.totals.fastbreakPoints}</td>
+                </tr>`;
+            });
+            
+            html += '</tbody></table></div>';
+            content.innerHTML = html;
+        }
+
+        function updateTournamentView() {
+            // Implementation for tournament view
+            const content = document.getElementById('tournaments-content');
+            content.innerHTML = '<p style="text-align: center; color: #e2e8f0;">Tournament stats coming soon!</p>';
+        }
+
+        function updateYearlyView() {
+            // Implementation for yearly view
+            const content = document.getElementById('yearly-content');
+            content.innerHTML = '<p style="text-align: center; color: #e2e8f0;">Yearly totals coming soon!</p>';
+        }
+
+        function updateGamesView() {
+            const content = document.getElementById('games-content');
+            const tournamentFilter = document.getElementById('games-tournament-filter')?.value || '';
+            const typeFilter = document.getElementById('games-type-filter')?.value || '';
+            
+            let filteredGames = savedGames;
+            
+            if (tournamentFilter) {
+                filteredGames = filteredGames.filter(game => game.tournament === tournamentFilter);
+            }
+            
+            if (typeFilter) {
+                filteredGames = filteredGames.filter(game => game.gameType === typeFilter);
+            }
+
+            if (filteredGames.length === 0) {
+                content.innerHTML = '<p style="text-align: center; color: #e2e8f0; padding: 2rem;">No games match the selected filters.</p>';
+                return;
+            }
+
+            let html = '';
+            filteredGames.forEach(game => {
+                html += `
+                    <div class="game-card">
+                        <div class="game-header">
+                            <div>
+                                <div class="game-title">Blue Eagles vs ${game.opposition}</div>
+                                <div class="game-info">${game.date} • ${game.gameType} • ${game.venue}</div>
+                                <div class="game-info">Tournament: ${game.tournament || 'N/A'}</div>
+                                <div class="game-info">Final Score: ${game.teamTotals?.totalPoints || 0} pts</div>
+                            </div>
+                            <div class="game-actions">
+                                <button onclick="loadGame(${game.id})" class="btn btn-primary btn-small">
+                                    Load Game
+                                </button>
+                                <button onclick="editGame(${game.id})" class="btn btn-secondary btn-small">
+                                    Edit
+                                </button>
+                                <button onclick="deleteGame(${game.id})" class="btn btn-danger btn-small">
+                                    Delete
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            content.innerHTML = html;
+        }
+
+        function loadGame(gameId) {
+            const game = savedGames.find(g => g.id === gameId);
+            if (game) {
+                document.getElementById('gameDate').value = game.date;
+                document.getElementById('opposition').value = game.opposition;
+                document.getElementById('tournament').value = game.tournament || '';
+                document.getElementById('gameType').value = game.gameType || '';
+                document.getElementById('venue').value = game.venue || '';
+                players = JSON.parse(JSON.stringify(game.players));
+                updatePlayersTable();
+                showView('statsheet');
+            }
+        }
+
+        function editGame(gameId) {
+            loadGame(gameId);
+            // Remove the original game so it can be re-saved
+            savedGames = savedGames.filter(g => g.id !== gameId);
+            localStorage.setItem('ateneoGames', JSON.stringify(savedGames));
+            alert('Game loaded for editing. Make your changes and save again.');
+        }
+
+        function deleteGame(gameId) {
+            if (confirm('Are you sure you want to delete this game? This cannot be undone.')) {
+                savedGames = savedGames.filter(g => g.id !== gameId);
+                localStorage.setItem('ateneoGames', JSON.stringify(savedGames));
+                updateGamesView();
+                alert('Game deleted successfully.');
+            }
+        }
+
+        // Tournament Management Functions
+        function addTournament() {
+            const tournamentName = document.getElementById('new-tournament-name')?.value?.trim();
+            if (!tournamentName) {
+                alert('Please enter a tournament name!');
+                return;
+            }
+            
+            if (tournaments.includes(tournamentName)) {
+                alert('Tournament already exists!');
+                return;
+            }
+            
+            tournaments.push(tournamentName);
+            localStorage.setItem('ateneoTournaments', JSON.stringify(tournaments));
+            updateTournamentDropdowns();
+            updateManageView();
+            document.getElementById('new-tournament-name').value = '';
+            alert('Tournament added successfully!');
+        }
+
+        function removeTournament(tournamentName) {
+            if (confirm(`Are you sure you want to remove "${tournamentName}"?`)) {
+                tournaments = tournaments.filter(t => t !== tournamentName);
+                localStorage.setItem('ateneoTournaments', JSON.stringify(tournaments));
+                updateTournamentDropdowns();
+                updateManageView();
+            }
+        }
+
+        function updateTournamentDropdowns() {
+            const selects = ['tournament', 'games-tournament-filter'];
+            selects.forEach(selectId => {
+                const select = document.getElementById(selectId);
+                if (select) {
+                    const currentValue = select.value;
+                    const options = select.querySelectorAll('option:not(:first-child)');
+                    options.forEach(option => option.remove());
+                    
+                    tournaments.forEach(tournament => {
+                        const option = document.createElement('option');
+                        option.value = tournament;
+                        option.textContent = tournament;
+                        select.appendChild(option);
+                    });
+                    
+                    select.value = currentValue;
+                }
+            });
+        }
+
+        function exportRoster() {
+            const rosterText = currentRoster.map(p => 
+                `${p.number}\t${p.firstName} ${p.lastName}\t${p.position}\t${p.isStarter ? 'STARTER' : 'BENCH'}`
+            ).join('\n');
+            
+            const fullText = `Ateneo Blue Eagles Roster\n\nJersey#\tName\tPosition\tStatus\n${rosterText}`;
+            
+            navigator.clipboard.writeText(fullText).then(() => {
+                alert('Roster copied to clipboard!');
+            });
+        }
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            loadRoster();
+            updateManageView();
+            updateTournamentDropdowns();
+        });
+    </script>
+</body>
+</html>
