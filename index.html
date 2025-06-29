@@ -948,7 +948,8 @@
             row.className = 'player-row';
             row.id = `player-${player.id}`;
             
-            const totalPoints = (player.fg2Made * 2) + (player.fg3Made * 3) + player.ftMade + player.fastbreakPoints;
+            // Fast break points are already counted in 2FG/3FG, don't double count
+            const totalPoints = (player.fg2Made * 2) + (player.fg3Made * 3) + player.ftMade;
             
             row.innerHTML = `
                 <td>${player.firstName} ${player.lastName}</td>
@@ -1113,7 +1114,8 @@
         function updatePlayerTotalPoints(playerId) {
             const player = currentGamePlayers.find(p => p.id === playerId);
             if (player) {
-                const totalPoints = (player.fg2Made * 2) + (player.fg3Made * 3) + player.ftMade + player.fastbreakPoints;
+                // Fast break points are already counted in 2FG/3FG, don't double count
+                const totalPoints = (player.fg2Made * 2) + (player.fg3Made * 3) + player.ftMade;
                 document.querySelector(`#player-${playerId} td:last-child`).previousElementSibling.textContent = totalPoints;
             }
         }
@@ -1168,7 +1170,7 @@
                 }
             });
             
-            totals.totalPoints = (totals.fg2Made * 2) + (totals.fg3Made * 3) + totals.ftMade + totals.fastbreakPoints;
+            totals.totalPoints = (totals.fg2Made * 2) + (totals.fg3Made * 3) + totals.ftMade;
             
             // Update footer row (skip minutes)
             Object.keys(totals).forEach(key => {
@@ -1346,7 +1348,8 @@
                         }
                         
                         playerStats[key].gamesPlayed++;
-                        playerStats[key].totalPoints += (player.fg2Made * 2) + (player.fg3Made * 3) + player.ftMade + player.fastbreakPoints;
+                        // Fixed: Don't double count fast break points
+                        playerStats[key].totalPoints += (player.fg2Made * 2) + (player.fg3Made * 3) + player.ftMade;
                         playerStats[key].totalAssists += player.assists;
                         playerStats[key].totalRebounds += player.offReb + player.defReb;
                         playerStats[key].totalSteals += player.steals;
