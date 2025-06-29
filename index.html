@@ -905,6 +905,7 @@
             });
             
             updateTeamTotals();
+            updateStartersCount();
         }
 
         // Add a single player to the game
@@ -945,10 +946,9 @@
             row.id = `player-${player.id}`;
             
             const totalPoints = (player.fg2Made * 2) + (player.fg3Made * 3) + player.ftMade + player.fastbreakPoints;
-            const starterDisplay = player.isStarter ? '*' : '';
             
             row.innerHTML = `
-                <td>${player.firstName} ${player.lastName}${starterDisplay ? '<span class="starter-badge">STARTER</span>' : ''}</td>
+                <td>${player.firstName} ${player.lastName}</td>
                 <td>${player.number}</td>
                 <td>
                     <select class="table-select" onchange="updatePlayerData(${player.id}, 'position', this.value)">
@@ -1025,24 +1025,50 @@
         function toggleStarter(playerId) {
             const player = currentGamePlayers.find(p => p.id === playerId);
             if (player) {
+                // If trying to make someone a starter
+                if (!player.isStarter) {
+                    const currentStarters = currentGamePlayers.filter(p => p.isStarter).length;
+                    
+                    // Check if we already have 5 starters
+                    if (currentStarters >= 5) {
+                        alert('⚠️ Maximum 5 starters allowed!\n\nYou already have 5 starters selected. Please remove a starter first before adding a new one.');
+                        return; // Don't proceed with the toggle
+                    }
+                }
+                
                 player.isStarter = !player.isStarter;
                 const button = document.querySelector(`#player-${playerId} .starter-toggle`);
-                const nameCell = document.querySelector(`#player-${playerId} td:first-child`);
                 
                 if (player.isStarter) {
                     button.classList.remove('bench');
                     button.classList.add('starter');
                     button.textContent = 'STARTER';
-                    nameCell.innerHTML = `${player.firstName} ${player.lastName}<span class="starter-badge">STARTER</span>`;
                 } else {
                     button.classList.remove('starter');
                     button.classList.add('bench');
                     button.textContent = 'BENCH';
-                    nameCell.innerHTML = `${player.firstName} ${player.lastName}`;
                 }
                 
                 // Re-sort players so starters appear first
                 sortPlayersByStarter();
+                
+                // Update the Set Starters button text
+                updateStartersCount();
+            }
+        }
+
+        // Update starters count display
+        function updateStartersCount() {
+            const starterCount = currentGamePlayers.filter(p => p.isStarter).length;
+            const setStartersBtn = document.querySelector('button[onclick="setStarters()"]');
+            if (setStartersBtn) {
+                if (starterCount === 5) {
+                    setStartersBtn.innerHTML = `✅ Starting 5 Set (${starterCount}/5)`;
+                    setStartersBtn.className = 'btn btn-success';
+                } else {
+                    setStartersBtn.innerHTML = `Set Starters (${starterCount}/5)`;
+                    setStartersBtn.className = 'btn btn-secondary';
+                }
             }
         }
 
@@ -1069,11 +1095,15 @@
         // Set starters quickly
         function setStarters() {
             const starterCount = currentGamePlayers.filter(p => p.isStarter).length;
-            const message = starterCount > 0 
-                ? `Currently ${starterCount} starters selected. Click the STARTER/BENCH buttons next to player names to change starting lineup.`
-                : 'Click the STARTER/BENCH buttons next to player names to set your starting 5.';
             
-            alert(message);
+            if (starterCount === 0) {
+                alert('🏀 Select Your Starting 5\n\nClick the STARTER/BENCH buttons in the Role column to choose your starting lineup.\n\nMaximum: 5 starters allowed');
+            } else if (starterCount === 5) {
+                const starters = currentGamePlayers.filter(p => p.isStarter).map(p => `${p.firstName} ${p.lastName}`);
+                alert(`✅ Starting 5 Complete!\n\nYour starters:\n• ${starters.join('\n• ')}\n\nClick individual STARTER/BENCH buttons to make changes.`);
+            } else {
+                alert(`⚠️ Need ${5 - starterCount} More Starter(s)\n\nCurrently selected: ${starterCount}/5 starters\n\nClick STARTER/BENCH buttons to complete your starting lineup.`);
+            }
         }
 
         // Update player's total points
