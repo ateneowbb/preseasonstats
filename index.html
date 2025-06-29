@@ -1358,4 +1358,359 @@
                                 <div style="color: #e2e8f0;">Wins</div>
                             </div>
                             <div style="text-align: center; background: rgba(220, 38, 38, 0.1); padding: 1rem; border-radius: 8px;">
-                                <div style="font-
+                                <div style="font-size: 2rem; font-weight: 700; color: #dc2626;">${stats.losses}</div>
+                                <div style="color: #e2e8f0;">Losses</div>
+                            </div>
+                            <div style="text-align: center; background: rgba(251, 191, 36, 0.1); padding: 1rem; border-radius: 8px;">
+                                <div style="font-size: 2rem; font-weight: 700; color: #fbbf24;">${avgPoints}</div>
+                                <div style="color: #e2e8f0;">Avg Points</div>
+                            </div>
+                        </div>
+                        
+                        <h4 style="color: #3b82f6; margin-bottom: 0.5rem;">Top Performers:</h4>
+                        <div class="table-container">
+                            <table class="stats-table">
+                                <thead>
+                                    <tr>
+                                        <th>Player</th>
+                                        <th>Games</th>
+                                        <th>PPG</th>
+                                        <th>APG</th>
+                                        <th>RPG</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                `;
+                
+                const topPlayers = Object.entries(stats.players)
+                    .map(([name, playerStats]) => ({
+                        name,
+                        games: playerStats.games,
+                        ppg: (playerStats.points / playerStats.games).toFixed(1),
+                        apg: (playerStats.assists / playerStats.games).toFixed(1),
+                        rpg: (playerStats.rebounds / playerStats.games).toFixed(1)
+                    }))
+                    .sort((a, b) => parseFloat(b.ppg) - parseFloat(a.ppg))
+                    .slice(0, 10);
+                
+                topPlayers.forEach(player => {
+                    html += `
+                        <tr class="player-row">
+                            <td style="text-align: left; font-weight: 600;">${player.name}</td>
+                            <td>${player.games}</td>
+                            <td>${player.ppg}</td>
+                            <td>${player.apg}</td>
+                            <td>${player.rpg}</td>
+                        </tr>
+                    `;
+                });
+                
+                html += `
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html || '<p style="text-align: center; color: #e2e8f0;">No tournament games yet. Start tracking games to see tournament stats!</p>';
+        }
+
+        // Update yearly view
+        function updateYearlyView() {
+            const container = document.getElementById('yearly-content');
+            
+            if (savedGames.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #e2e8f0;">No games recorded yet. Start tracking to see yearly statistics!</p>';
+                return;
+            }
+            
+            const currentYear = new Date().getFullYear();
+            const yearlyGames = savedGames.filter(game => {
+                const gameYear = new Date(game.date).getFullYear();
+                return gameYear === currentYear;
+            });
+            
+            if (yearlyGames.length === 0) {
+                container.innerHTML = `<p style="text-align: center; color: #e2e8f0;">No games recorded for ${currentYear} yet.</p>`;
+                return;
+            }
+            
+            let totalWins = 0, totalLosses = 0;
+            let totalPoints = 0, totalOpponentPoints = 0;
+            const playerTotals = {};
+            
+            yearlyGames.forEach(game => {
+                if (game.result === 'W') totalWins++;
+                if (game.result === 'L') totalLosses++;
+                if (game.teamScore !== null) totalPoints += game.teamScore;
+                if (game.opponentScore !== null) totalOpponentPoints += game.opponentScore;
+                
+                game.players.forEach(player => {
+                    if (player.status === 'playing') {
+                        const key = `${player.firstName} ${player.lastName}`;
+                        if (!playerTotals[key]) {
+                            playerTotals[key] = {
+                                games: 0, points: 0, assists: 0, rebounds: 0,
+                                steals: 0, blocks: 0, turnovers: 0, fouls: 0
+                            };
+                        }
+                        
+                        playerTotals[key].games++;
+                        playerTotals[key].points += (player.fg2Made * 2) + (player.fg3Made * 3) + player.ftMade + player.fastbreakPoints;
+                        playerTotals[key].assists += player.assists;
+                        playerTotals[key].rebounds += player.offReb + player.defReb;
+                        playerTotals[key].steals += player.steals;
+                        playerTotals[key].blocks += player.blocks;
+                        playerTotals[key].turnovers += player.turnovers;
+                        playerTotals[key].fouls += player.fouls;
+                    }
+                });
+            });
+            
+            const avgPoints = yearlyGames.length > 0 ? (totalPoints / yearlyGames.length).toFixed(1) : '0.0';
+            const winPct = (totalWins + totalLosses) > 0 ? ((totalWins / (totalWins + totalLosses)) * 100).toFixed(1) : '0.0';
+            
+            let html = `
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+                    <div style="text-align: center; background: rgba(59, 130, 246, 0.1); padding: 1.5rem; border-radius: 12px;">
+                        <div style="font-size: 2.5rem; font-weight: 700; color: #3b82f6;">${yearlyGames.length}</div>
+                        <div style="color: #e2e8f0; font-weight: 600;">Games Played</div>
+                    </div>
+                    <div style="text-align: center; background: rgba(5, 150, 105, 0.1); padding: 1.5rem; border-radius: 12px;">
+                        <div style="font-size: 2.5rem; font-weight: 700; color: #059669;">${totalWins}-${totalLosses}</div>
+                        <div style="color: #e2e8f0; font-weight: 600;">Win-Loss Record</div>
+                    </div>
+                    <div style="text-align: center; background: rgba(251, 191, 36, 0.1); padding: 1.5rem; border-radius: 12px;">
+                        <div style="font-size: 2.5rem; font-weight: 700; color: #fbbf24;">${winPct}%</div>
+                        <div style="color: #e2e8f0; font-weight: 600;">Win Percentage</div>
+                    </div>
+                    <div style="text-align: center; background: rgba(139, 92, 246, 0.1); padding: 1.5rem; border-radius: 12px;">
+                        <div style="font-size: 2.5rem; font-weight: 700; color: #8b5cf6;">${avgPoints}</div>
+                        <div style="color: #e2e8f0; font-weight: 600;">Avg Points Per Game</div>
+                    </div>
+                </div>
+                
+                <h3 style="color: #3b82f6; margin-bottom: 1rem; font-weight: 700;">${currentYear} Player Totals</h3>
+                <div class="table-container">
+                    <table class="stats-table">
+                        <thead>
+                            <tr>
+                                <th>Player</th>
+                                <th>GP</th>
+                                <th>Total PTS</th>
+                                <th>Total AST</th>
+                                <th>Total REB</th>
+                                <th>Total STL</th>
+                                <th>Total BLK</th>
+                                <th>Total TO</th>
+                                <th>Total FL</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+            
+            const sortedPlayers = Object.entries(playerTotals)
+                .sort(([,a], [,b]) => b.points - a.points);
+            
+            sortedPlayers.forEach(([name, stats]) => {
+                html += `
+                    <tr class="player-row">
+                        <td style="text-align: left; font-weight: 600;">${name}</td>
+                        <td>${stats.games}</td>
+                        <td>${stats.points}</td>
+                        <td>${stats.assists}</td>
+                        <td>${stats.rebounds}</td>
+                        <td>${stats.steals}</td>
+                        <td>${stats.blocks}</td>
+                        <td>${stats.turnovers}</td>
+                        <td>${stats.fouls}</td>
+                    </tr>
+                `;
+            });
+            
+            html += `
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            
+            container.innerHTML = html;
+        }
+
+        // Update manage view
+        function updateManageView() {
+            updateRosterList();
+            updateTournamentsList();
+        }
+
+        // Update roster list in manage view
+        function updateRosterList() {
+            const container = document.getElementById('roster-list');
+            
+            let html = `
+                <table class="stats-table">
+                    <thead>
+                        <tr>
+                            <th>Player Name</th>
+                            <th>Jersey #</th>
+                            <th>Position</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            currentRoster.forEach(player => {
+                html += `
+                    <tr class="player-row">
+                        <td style="text-align: left; font-weight: 600;">${player.firstName} ${player.lastName}</td>
+                        <td>${player.number}</td>
+                        <td>
+                            <select onchange="updateRosterPlayerPosition(${player.id}, this.value)" class="table-select">
+                                <option value="">Select Position</option>
+                                <option value="PG" ${player.position === 'PG' ? 'selected' : ''}>Point Guard (PG)</option>
+                                <option value="SG" ${player.position === 'SG' ? 'selected' : ''}>Shooting Guard (SG)</option>
+                                <option value="SF" ${player.position === 'SF' ? 'selected' : ''}>Small Forward (SF)</option>
+                                <option value="PF" ${player.position === 'PF' ? 'selected' : ''}>Power Forward (PF)</option>
+                                <option value="C" ${player.position === 'C' ? 'selected' : ''}>Center (C)</option>
+                            </select>
+                        </td>
+                        <td>
+                            <button class="btn btn-danger btn-small" onclick="removeFromRoster(${player.id})">Remove</button>
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            html += `
+                    </tbody>
+                </table>
+            `;
+            
+            container.innerHTML = html;
+        }
+
+        // Management functions
+        function addPlayerToRoster() {
+            const firstName = prompt("Player's first name:");
+            const lastName = prompt("Player's last name:");
+            const number = prompt("Jersey number:");
+            
+            if (firstName && lastName && number) {
+                const newPlayer = {
+                    id: Date.now(),
+                    firstName: firstName.trim(),
+                    lastName: lastName.trim(),
+                    number: number.trim(),
+                    position: '',
+                    isStarter: false
+                };
+                
+                currentRoster.push(newPlayer);
+                localStorage.setItem('basketballRoster', JSON.stringify(currentRoster));
+                updateRosterList();
+            }
+        }
+
+        function removeFromRoster(playerId) {
+            if (confirm('Remove this player from the roster permanently?')) {
+                currentRoster = currentRoster.filter(p => p.id !== playerId);
+                localStorage.setItem('basketballRoster', JSON.stringify(currentRoster));
+                updateRosterList();
+            }
+        }
+
+        function updateRosterPlayerPosition(playerId, position) {
+            const player = currentRoster.find(p => p.id === playerId);
+            if (player) {
+                player.position = position;
+                localStorage.setItem('basketballRoster', JSON.stringify(currentRoster));
+            }
+        }
+
+        function exportRoster() {
+            let rosterText = "ATENEO BLUE EAGLES ROSTER\n";
+            rosterText += "========================\n\n";
+            
+            currentRoster.forEach(player => {
+                rosterText += `#${player.number} - ${player.firstName} ${player.lastName}`;
+                if (player.position) rosterText += ` (${player.position})`;
+                rosterText += "\n";
+            });
+            
+            navigator.clipboard.writeText(rosterText).then(() => {
+                alert('Roster copied to clipboard!');
+            });
+        }
+
+        function addTournament() {
+            const name = document.getElementById('new-tournament-name').value.trim();
+            if (name) {
+                const select = document.getElementById('tournament');
+                const option = document.createElement('option');
+                option.value = name;
+                option.textContent = name;
+                select.appendChild(option);
+                
+                document.getElementById('new-tournament-name').value = '';
+                updateTournamentsList();
+            }
+        }
+
+        function updateTournamentsList() {
+            const container = document.getElementById('tournaments-list');
+            const select = document.getElementById('tournament');
+            const tournaments = Array.from(select.options)
+                .filter(option => option.value !== '')
+                .map(option => option.value);
+            
+            if (tournaments.length === 0) {
+                container.innerHTML = '<p style="color: #e2e8f0;">No custom tournaments added yet.</p>';
+                return;
+            }
+            
+            let html = '<h4 style="color: #3b82f6; margin-bottom: 0.5rem;">Current Tournaments:</h4>';
+            html += '<ul style="color: #e2e8f0; margin-left: 1rem;">';
+            
+            tournaments.forEach(tournament => {
+                html += `<li style="margin-bottom: 0.25rem;">${tournament}</li>`;
+            });
+            
+            html += '</ul>';
+            container.innerHTML = html;
+        }
+
+        // Game management functions
+        function viewGameDetails(gameId) {
+            const game = savedGames.find(g => g.id === gameId);
+            if (game) {
+                alert(`Game Details:\n\nDate: ${game.date}\nOpponent: ${game.opposition}\nTournament: ${game.tournament}\nType: ${game.gameType}\nVenue: ${game.venue}\n\nPlayers in game: ${game.players.length}`);
+            }
+        }
+
+        function deleteGame(gameId) {
+            if (confirm('Delete this game permanently?')) {
+                savedGames = savedGames.filter(g => g.id !== gameId);
+                localStorage.setItem('basketballGames', JSON.stringify(savedGames));
+                updateGamesView();
+            }
+        }
+
+        // Initialize the app
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load saved roster if exists
+            const savedRoster = localStorage.getItem('basketballRoster');
+            if (savedRoster) {
+                currentRoster = JSON.parse(savedRoster);
+            }
+            
+            // Set today's date as default
+            document.getElementById('gameDate').value = new Date().toISOString().split('T')[0];
+            
+            // Initialize views
+            showView('statsheet');
+        });
+    </script>
+</body>
+</html>
