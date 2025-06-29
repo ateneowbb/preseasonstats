@@ -420,6 +420,32 @@
             gap: 0.5rem;
         }
         
+        .starter-badge {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            margin-left: 0.5rem;
+        }
+        
+        .starter-toggle {
+            padding: 4px 8px;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-left: 0.5rem;
+        }
+        
+        .starter-toggle.starter {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white;
+        }
+        
         .win-loss-badge {
             padding: 4px 12px;
             border-radius: 20px;
@@ -592,6 +618,9 @@
                 <button class="btn btn-secondary" onclick="addPlayerToGame()">
                     Add Player to Game
                 </button>
+                <button class="btn btn-secondary" onclick="setStarters()">
+                    Set Starters
+                </button>
                 <button class="btn btn-secondary" onclick="copyToClipboard()">
                     Copy Stats
                 </button>
@@ -601,7 +630,7 @@
                 <button class="btn btn-warning" onclick="clearForm()">
                     New Game
                 </button>
-            </div>
+            </div></div>
 
             <!-- Stats Table -->
             <div class="table-container">
@@ -611,6 +640,7 @@
                             <th rowspan="2" style="width: 180px;">Player</th>
                             <th rowspan="2">#</th>
                             <th rowspan="2">Pos</th>
+                            <th rowspan="2">Role</th>
                             <th rowspan="2">Status</th>
                             <th colspan="2">2-Point FG</th>
                             <th colspan="2">3-Point FG</th>
@@ -642,7 +672,7 @@
                     </tbody>
                     <tfoot>
                         <tr class="team-totals">
-                            <td colspan="4"><strong>TEAM TOTALS:</strong></td>
+                            <td colspan="5"><strong>TEAM TOTALS:</strong></td>
                             <td id="total-fg2Att">0</td>
                             <td id="total-fg2Made">0</td>
                             <td id="total-fg3Att">0</td>
@@ -851,7 +881,14 @@
             const tbody = document.getElementById('playersTableBody');
             tbody.innerHTML = '';
             
-            currentRoster.forEach(player => {
+            // Sort roster so starters appear first
+            const sortedRoster = [...currentRoster].sort((a, b) => {
+                if (a.isStarter && !b.isStarter) return -1;
+                if (!a.isStarter && b.isStarter) return 1;
+                return 0;
+            });
+            
+            sortedRoster.forEach(player => {
                 const gamePlayer = {
                     ...player,
                     fg2Att: 0, fg2Made: 0,
@@ -908,9 +945,10 @@
             row.id = `player-${player.id}`;
             
             const totalPoints = (player.fg2Made * 2) + (player.fg3Made * 3) + player.ftMade + player.fastbreakPoints;
+            const starterDisplay = player.isStarter ? '*' : '';
             
             row.innerHTML = `
-                <td>${player.firstName} ${player.lastName}</td>
+                <td>${player.firstName} ${player.lastName}${starterDisplay ? '<span class="starter-badge">STARTER</span>' : ''}</td>
                 <td>${player.number}</td>
                 <td>
                     <select class="table-select" onchange="updatePlayerData(${player.id}, 'position', this.value)">
@@ -921,6 +959,11 @@
                         <option value="PF" ${player.position === 'PF' ? 'selected' : ''}>PF</option>
                         <option value="C" ${player.position === 'C' ? 'selected' : ''}>C</option>
                     </select>
+                </td>
+                <td>
+                    <button class="starter-toggle ${player.isStarter ? 'starter' : 'bench'}" onclick="toggleStarter(${player.id})">
+                        ${player.isStarter ? 'STARTER' : 'BENCH'}
+                    </button>
                 </td>
                 <td>
                     <button class="dnp-toggle ${player.status}" onclick="toggleDNP(${player.id})">
@@ -976,6 +1019,61 @@
                 updatePlayerTotalPoints(playerId);
                 updateTeamTotals();
             }
+        }
+
+        // Toggle starter status
+        function toggleStarter(playerId) {
+            const player = currentGamePlayers.find(p => p.id === playerId);
+            if (player) {
+                player.isStarter = !player.isStarter;
+                const button = document.querySelector(`#player-${playerId} .starter-toggle`);
+                const nameCell = document.querySelector(`#player-${playerId} td:first-child`);
+                
+                if (player.isStarter) {
+                    button.classList.remove('bench');
+                    button.classList.add('starter');
+                    button.textContent = 'STARTER';
+                    nameCell.innerHTML = `${player.firstName} ${player.lastName}<span class="starter-badge">STARTER</span>`;
+                } else {
+                    button.classList.remove('starter');
+                    button.classList.add('bench');
+                    button.textContent = 'BENCH';
+                    nameCell.innerHTML = `${player.firstName} ${player.lastName}`;
+                }
+                
+                // Re-sort players so starters appear first
+                sortPlayersByStarter();
+            }
+        }
+
+        // Sort players so starters appear first
+        function sortPlayersByStarter() {
+            const tbody = document.getElementById('playersTableBody');
+            const rows = Array.from(tbody.querySelectorAll('.player-row'));
+            
+            rows.sort((a, b) => {
+                const aId = parseInt(a.id.split('-')[1]);
+                const bId = parseInt(b.id.split('-')[1]);
+                const aPlayer = currentGamePlayers.find(p => p.id === aId);
+                const bPlayer = currentGamePlayers.find(p => p.id === bId);
+                
+                if (aPlayer.isStarter && !bPlayer.isStarter) return -1;
+                if (!aPlayer.isStarter && bPlayer.isStarter) return 1;
+                return 0;
+            });
+            
+            tbody.innerHTML = '';
+            rows.forEach(row => tbody.appendChild(row));
+        }
+
+        // Set starters quickly
+        function setStarters() {
+            const starterCount = currentGamePlayers.filter(p => p.isStarter).length;
+            const message = starterCount > 0 
+                ? `Currently ${starterCount} starters selected. Click the STARTER/BENCH buttons next to player names to change starting lineup.`
+                : 'Click the STARTER/BENCH buttons next to player names to set your starting 5.';
+            
+            alert(message);
         }
 
         // Update player's total points
@@ -1118,7 +1216,8 @@
             
             currentGamePlayers.forEach(player => {
                 const totalPoints = (player.fg2Made * 2) + (player.fg3Made * 3) + player.ftMade + player.fastbreakPoints;
-                statsText += `${player.firstName} ${player.lastName}\t${player.number}\t${player.position}\t${player.status}\t${player.fg2Att}\t${player.fg2Made}\t${player.fg3Att}\t${player.fg3Made}\t${player.ftAtt}\t${player.ftMade}\t${player.offReb}\t${player.defReb}\t${player.assists}\t${player.steals}\t${player.blocks}\t${player.turnovers}\t${player.fouls}\t${player.fastbreakPoints}\t${player.minutesPlayed}\t${totalPoints}\n`;
+                const starterMark = player.isStarter ? '*' : '';
+                statsText += `${player.firstName} ${player.lastName}${starterMark}\t${player.number}\t${player.position}\t${player.status}\t${player.fg2Att}\t${player.fg2Made}\t${player.fg3Att}\t${player.fg3Made}\t${player.ftAtt}\t${player.ftMade}\t${player.offReb}\t${player.defReb}\t${player.assists}\t${player.steals}\t${player.blocks}\t${player.turnovers}\t${player.fouls}\t${player.fastbreakPoints}\t${player.minutesPlayed}\t${totalPoints}\n`;
             });
             
             navigator.clipboard.writeText(statsText).then(() => {
@@ -1565,7 +1664,11 @@
                 html += `
                     <tr class="player-row">
                         <td style="text-align: left; font-weight: 600;">${player.firstName} ${player.lastName}</td>
-                        <td>${player.number}</td>
+                        <td>
+                            <input type="text" class="table-input" value="${player.number}" 
+                                   onchange="updateRosterPlayerNumber(${player.id}, this.value)" 
+                                   style="width: 60px; text-align: center;">
+                        </td>
                         <td>
                             <select onchange="updateRosterPlayerPosition(${player.id}, this.value)" class="table-select">
                                 <option value="">Select Position</option>
@@ -1625,6 +1728,14 @@
             const player = currentRoster.find(p => p.id === playerId);
             if (player) {
                 player.position = position;
+                localStorage.setItem('basketballRoster', JSON.stringify(currentRoster));
+            }
+        }
+
+        function updateRosterPlayerNumber(playerId, number) {
+            const player = currentRoster.find(p => p.id === playerId);
+            if (player) {
+                player.number = number.trim();
                 localStorage.setItem('basketballRoster', JSON.stringify(currentRoster));
             }
         }
