@@ -621,6 +621,9 @@
                 <button class="btn btn-secondary" onclick="setStarters()">
                     Set Starters
                 </button>
+                <button class="btn btn-secondary" onclick="addMinutesForAllPlayers()">
+                    Add Minutes for All
+                </button>
                 <button class="btn btn-secondary" onclick="copyToClipboard()">
                     Copy Stats
                 </button>
@@ -1286,6 +1289,11 @@
                     scoreDisplay = `<div style="margin-top: 0.5rem; font-weight: 600;">Final Score: ${game.teamScore} - ${game.opponentScore}</div>`;
                 }
                 
+                // Calculate game totals
+                const totalPoints = game.players.reduce((sum, p) => sum + ((p.fg2Made * 2) + (p.fg3Made * 3) + p.ftMade + p.fastbreakPoints), 0);
+                const totalMinutes = game.players.reduce((sum, p) => sum + p.minutesPlayed, 0);
+                const playersPlayed = game.players.filter(p => p.status === 'playing').length;
+                
                 return `
                     <div class="game-card">
                         <div class="game-header">
@@ -1295,10 +1303,14 @@
                                     ${gameDate} • ${game.tournament} • ${game.gameType}<br>
                                     Venue: ${game.venue}
                                     ${scoreDisplay}
+                                    <div style="margin-top: 0.5rem; color: #94a3b8; font-size: 0.85rem;">
+                                        Team Stats: ${totalPoints} pts • ${totalMinutes} min • ${playersPlayed} players
+                                    </div>
                                 </div>
                             </div>
                             <div class="game-actions">
-                                <button class="btn btn-secondary btn-small" onclick="viewGameDetails(${game.id})">View Details</button>
+                                <button class="btn btn-primary btn-small" onclick="viewFullGameStats(${game.id})">View Stats</button>
+                                <button class="btn btn-secondary btn-small" onclick="editGame(${game.id})">Edit</button>
                                 <button class="btn btn-danger btn-small" onclick="deleteGame(${game.id})">Delete</button>
                             </div>
                         </div>
@@ -1823,10 +1835,184 @@
         }
 
         // Game management functions
-        function viewGameDetails(gameId) {
+        function viewFullGameStats(gameId) {
             const game = savedGames.find(g => g.id === gameId);
-            if (game) {
-                alert(`Game Details:\n\nDate: ${game.date}\nOpponent: ${game.opposition}\nTournament: ${game.tournament}\nType: ${game.gameType}\nVenue: ${game.venue}\n\nPlayers in game: ${game.players.length}`);
+            if (!game) return;
+            
+            // Create a modal-like display for full game stats
+            const modalContent = `
+                <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; display: flex; align-items: center; justify-content: center;" onclick="closeGameStatsModal(event)">
+                    <div style="background: #1e293b; border-radius: 16px; padding: 2rem; max-width: 95%; max-height: 90%; overflow-y: auto; border: 1px solid rgba(59, 130, 246, 0.2);" onclick="event.stopPropagation();">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                            <h2 style="color: #3b82f6; margin: 0;">vs ${game.opposition} - ${new Date(game.date).toLocaleDateString()}</h2>
+                            <button onclick="closeGameStatsModal()" style="background: #dc2626; color: white; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer;">✕ Close</button>
+                        </div>
+                        
+                        <div style="margin-bottom: 1rem; color: #e2e8f0;">
+                            <strong>${game.tournament}</strong> • ${game.gameType} • ${game.venue}<br>
+                            ${game.teamScore !== null ? `Final Score: Blue Eagles ${game.teamScore} - ${game.opponentScore} ${game.opposition} (${game.result})` : 'Score not recorded'}
+                        </div>
+                        
+                        <div class="table-container">
+                            <table class="stats-table">
+                                <thead>
+                                    <tr>
+                                        <th>Player</th>
+                                        <th>#</th>
+                                        <th>Pos</th>
+                                        <th>Role</th>
+                                        <th>Status</th>
+                                        <th>2FGA</th>
+                                        <th>2FGM</th>
+                                        <th>3FGA</th>
+                                        <th>3FGM</th>
+                                        <th>FTA</th>
+                                        <th>FTM</th>
+                                        <th>ORB</th>
+                                        <th>DRB</th>
+                                        <th>AST</th>
+                                        <th>STL</th>
+                                        <th>BLK</th>
+                                        <th>TO</th>
+                                        <th>FL</th>
+                                        <th>FB</th>
+                                        <th>MIN</th>
+                                        <th>PTS</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${game.players.map(player => {
+                                        const totalPoints = (player.fg2Made * 2) + (player.fg3Made * 3) + player.ftMade + player.fastbreakPoints;
+                                        const roleDisplay = player.isStarter ? 'STARTER' : 'BENCH';
+                                        return `
+                                            <tr class="player-row ${player.status === 'dnp' ? 'dnp' : ''}">
+                                                <td style="text-align: left; font-weight: 600;">${player.firstName} ${player.lastName}</td>
+                                                <td>${player.number}</td>
+                                                <td>${player.position || '-'}</td>
+                                                <td style="color: ${player.isStarter ? '#f59e0b' : '#6b7280'}; font-weight: 600;">${roleDisplay}</td>
+                                                <td style="color: ${player.status === 'playing' ? '#059669' : '#6b7280'};">${player.status.toUpperCase()}</td>
+                                                <td>${player.fg2Att}</td>
+                                                <td>${player.fg2Made}</td>
+                                                <td>${player.fg3Att}</td>
+                                                <td>${player.fg3Made}</td>
+                                                <td>${player.ftAtt}</td>
+                                                <td>${player.ftMade}</td>
+                                                <td>${player.offReb}</td>
+                                                <td>${player.defReb}</td>
+                                                <td>${player.assists}</td>
+                                                <td>${player.steals}</td>
+                                                <td>${player.blocks}</td>
+                                                <td>${player.turnovers}</td>
+                                                <td>${player.fouls}</td>
+                                                <td>${player.fastbreakPoints}</td>
+                                                <td class="minutes-col">${player.minutesPlayed}</td>
+                                                <td style="font-weight: 700; color: #3b82f6;">${totalPoints}</td>
+                                            </tr>
+                                        `;
+                                    }).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalContent);
+        }
+
+        function closeGameStatsModal(event) {
+            if (!event || event.target === event.currentTarget) {
+                const modal = document.querySelector('div[style*="position: fixed"]');
+                if (modal) modal.remove();
+            }
+        }
+
+        function editGame(gameId) {
+            const game = savedGames.find(g => g.id === gameId);
+            if (!game) return;
+            
+            if (confirm(`Edit game vs ${game.opposition} (${new Date(game.date).toLocaleDateString()})?\n\nThis will load the game data into the current stat sheet where you can make changes and save again.`)) {
+                // Load game data into current form
+                document.getElementById('gameDate').value = game.date;
+                document.getElementById('opposition').value = game.opposition;
+                document.getElementById('tournament').value = game.tournament;
+                document.getElementById('gameType').value = game.gameType;
+                document.getElementById('venue').value = game.venue;
+                document.getElementById('teamScore').value = game.teamScore || '';
+                document.getElementById('opponentScore').value = game.opponentScore || '';
+                
+                // Load players with their stats
+                currentGamePlayers = [...game.players];
+                const tbody = document.getElementById('playersTableBody');
+                tbody.innerHTML = '';
+                
+                // Sort so starters appear first
+                currentGamePlayers.sort((a, b) => {
+                    if (a.isStarter && !b.isStarter) return -1;
+                    if (!a.isStarter && b.isStarter) return 1;
+                    return 0;
+                });
+                
+                currentGamePlayers.forEach(player => {
+                    addPlayerRow(player);
+                });
+                
+                updateTeamTotals();
+                updateStartersCount();
+                
+                // Remove the original game so we don't have duplicates when saving
+                savedGames = savedGames.filter(g => g.id !== gameId);
+                localStorage.setItem('basketballGames', JSON.stringify(savedGames));
+                
+                // Switch to stat sheet view
+                showView('statsheet');
+                
+                alert('✅ Game loaded for editing!\n\nMake your changes and click "Save Game" when done.');
+            }
+        }
+
+        function addMinutesForAllPlayers() {
+            if (currentGamePlayers.length === 0) {
+                alert('⚠️ No players loaded!\n\nPlease load the roster first before adding minutes.');
+                return;
+            }
+            
+            const playingPlayers = currentGamePlayers.filter(p => p.status === 'playing');
+            
+            if (playingPlayers.length === 0) {
+                alert('⚠️ No active players!\n\nAll players are marked as DNP.');
+                return;
+            }
+            
+            let minutesData = [];
+            let allMinutesValid = true;
+            
+            // Collect minutes for all playing players
+            for (let player of playingPlayers) {
+                const minutes = prompt(`Enter minutes played for ${player.firstName} ${player.lastName}:`);
+                
+                if (minutes === null) {
+                    // User cancelled
+                    return;
+                }
+                
+                const minutesNum = parseInt(minutes) || 0;
+                if (minutesNum < 0 || minutesNum > 48) {
+                    alert(`⚠️ Invalid minutes for ${player.firstName} ${player.lastName}!\n\nPlease enter a number between 0-48 minutes.`);
+                    allMinutesValid = false;
+                    break;
+                }
+                
+                minutesData.push({ playerId: player.id, minutes: minutesNum });
+            }
+            
+            // Apply minutes if all are valid
+            if (allMinutesValid) {
+                minutesData.forEach(({ playerId, minutes }) => {
+                    updatePlayerData(playerId, 'minutesPlayed', minutes);
+                });
+                
+                alert(`✅ Minutes updated!\n\nMinutes have been set for ${minutesData.length} players.`);
             }
         }
 
