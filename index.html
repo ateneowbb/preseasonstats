@@ -690,7 +690,7 @@
                             <td id="total-turnovers">0</td>
                             <td id="total-fouls">0</td>
                             <td id="total-fastbreakPoints">0</td>
-                            <td id="total-minutesPlayed" class="minutes-col">0</td>
+                            <td class="minutes-col">-</td>
                             <td id="total-totalPoints">0</td>
                             <td></td>
                         </tr>
@@ -1155,7 +1155,7 @@
                 fg2Att: 0, fg2Made: 0, fg3Att: 0, fg3Made: 0,
                 ftAtt: 0, ftMade: 0, offReb: 0, defReb: 0,
                 assists: 0, steals: 0, blocks: 0, turnovers: 0,
-                fouls: 0, fastbreakPoints: 0, minutesPlayed: 0, totalPoints: 0
+                fouls: 0, fastbreakPoints: 0, totalPoints: 0
             };
             
             currentGamePlayers.forEach(player => {
@@ -1170,7 +1170,7 @@
             
             totals.totalPoints = (totals.fg2Made * 2) + (totals.fg3Made * 3) + totals.ftMade + totals.fastbreakPoints;
             
-            // Update footer row
+            // Update footer row (skip minutes)
             Object.keys(totals).forEach(key => {
                 const element = document.getElementById(`total-${key}`);
                 if (element) {
@@ -1997,8 +1997,8 @@
                 }
                 
                 const minutesNum = parseInt(minutes) || 0;
-                if (minutesNum < 0 || minutesNum > 48) {
-                    alert(`⚠️ Invalid minutes for ${player.firstName} ${player.lastName}!\n\nPlease enter a number between 0-48 minutes.`);
+                if (minutesNum < 0) {
+                    alert(`⚠️ Invalid minutes for ${player.firstName} ${player.lastName}!\n\nPlease enter a positive number (games can have overtime).`);
                     allMinutesValid = false;
                     break;
                 }
